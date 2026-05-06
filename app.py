@@ -42,10 +42,8 @@ try:
     tokenizer = AutoTokenizer.from_pretrained(current_dir)
     onnx_session = ort.InferenceSession(MODEL_PATH)
     
-    # --- التعديل هنا فقط ---
-    # الترتيب الجديد المطابق 100% لملف config.json
+    # تأكدي إن فيه 4 مسافات قبل كلمة LABELS عشان تكون داخل الـ try
     LABELS = ["هادئ", "سعيد", "حزين", "غاضب", "متوتر", "تعبان"]
-    # -----------------------
     
     print("✅ Local Model Loaded Successfully!")
 except Exception as e:
