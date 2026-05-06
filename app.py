@@ -21,7 +21,9 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 # ⚙️ Cloud Storage & AI Engine (Google Drive + ONNX)
 # ------------------------------------------------
 # المعرف الخاص بملفك من رابط جوجل درايف الذي زودتني به
+# المعرف (ID) المستخرج من رابط جوجل درايف الخاص بكِ
 FILE_ID = "1FBS7ZkBoSABvmeKDpNL92o1VWsSTaYpY"
+
 # تحديد المسار المطلق لضمان عمل الموديل في بيئة Linux الخاصة بـ Render
 current_dir = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(current_dir, "model.onnx")
@@ -30,15 +32,19 @@ def download_model_from_drive():
     """تحميل الموديل من جوجل درايف إذا لم يكن موجوداً على السيرفر"""
     if not os.path.exists(MODEL_PATH):
         print("⏳ Downloading Anah Model from Google Drive...")
+        
+        # الرابط المباشر للتحميل (Direct Download Link)
         url = f'https://drive.google.com/uc?id={FILE_ID}'
+        
         try:
-            # التحميل باستخدام مكتبة gdown لتجاوز شاشات التحذير للملفات الكبيرة
+            # التحميل باستخدام gdown لتجاوز شاشات التحذير للملفات الكبيرة
+            # تأكدي أن الملف في درايف متاح "لأي شخص لديه الرابط" (Anyone with the link)
             gdown.download(url, MODEL_PATH, quiet=False)
             print("✅ Download Complete!")
         except Exception as e:
             print(f"❌ Download Failed: {e}")
 
-# تنفيذ التحميل بمجرد بدء تشغيل السيرفر
+# استدعاء الدالة لبدء التحميل
 download_model_from_drive()
 
 print("⏳ Loading Anah ONNX Engine locally...")
