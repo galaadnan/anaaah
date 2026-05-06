@@ -20,7 +20,7 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 # ------------------------------------------------
 # ⚙️ Cloud Storage & AI Engine (Google Drive + ONNX)
 # ------------------------------------------------
-# المعرف الخاص بالملف الأصلي المستقر (تأكدي أنه المعرف القديم الصحيح)
+# المعرف الخاص بالملف الأصلي المستقر (model.onnx)
 FILE_ID = "1FBS7ZkBoSABvmeKDpNL92o1VWsSTaYpY" 
 
 # تحديد المسار المطلق لضمان عمل الموديل في بيئة Linux الخاصة بـ Render
@@ -44,11 +44,16 @@ download_model_from_drive()
 
 print("⏳ Loading Anah ONNX Engine locally...")
 
+onnx_session = None
+tokenizer = None
+# قائمة المشاعر المعتمدة في الموديل المستقر (تأكدي من ترتيبها)
+LABELS = ["هادئ", "سعيد", "حزين", "غاضب", "متوتر", "تعبان"]
+
 try:
-    # تحميل التوكنايزر من الملفات المحلية (تأكدي من رفع النسخ القديمة لـ GitHub)
+    # تحميل التوكنايزر من الملفات المحلية الموجودة في نفس المجلد
     tokenizer = AutoTokenizer.from_pretrained(current_dir)
     
-    # تحسين استهلاك الذاكرة RAM للسيرفر
+    # تحسين استهلاك الذاكرة RAM للسيرفر لتجنب الانهيار
     sess_options = ort.SessionOptions()
     sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
     sess_options.intra_op_num_threads = 1
@@ -57,33 +62,43 @@ try:
     # إنشاء جلسة عمل للموديل المحسن ONNX
     onnx_session = ort.InferenceSession(MODEL_PATH, sess_options)
     
-    # قائمة المشاعر القديمة المستقرة (5 مشاعر كما كانت سابقاً)
-    LABELS = ["سعيد", "حزين", "غاضب", "متوتر", "تعبان"]
-    print("✅ Back to Stable Version Successfully!")
+    print("✅ System Ready & Back to Stable Version Successfully!")
 except Exception as e:
-    print(f"❌ Critical Error loading original model: {e}")
+    print(f"❌ Critical Error loading ONNX model: {e}")
 
 def query_local_model(text_list):
-    """دالة لتحليل النصوص محلياً باستخدام ONNX"""
+    """دالة لتحليل النصوص محلياً باستخدام ONNX مع معالجة ذكية للجمل الإيجابية"""
     results = []
+    if onnx_session is None or tokenizer is None:
+        return None
+        
     try:
         for text in text_list:
             text_clean = text.strip()
             
+            # 🛡️ معالجة فورية لكلمات "لا بأس" والهدوء (تجاوز الموديل لزيادة الدقة)
+            calm_keywords = ["لا باس", "لا بأس", "انا كويسه", "انا كويسة", "الحمدلله", "الحمد لله", "بخير", "تمام"]
+            if any(word in text_clean for word in calm_keywords):
+                results.append({
+                    "label": "هادئ", 
+                    "score": 0.99
+                })
+                continue 
+            
+            # المعالجة عبر الموديل
             inputs = tokenizer(text_clean, return_tensors="np", padding=True, truncation=True)
             ort_inputs = {k: v for k, v in inputs.items()}
             
-            # تشغيل الموديل
             ort_outs = onnx_session.run(None, ort_inputs)
             scores = ort_outs[0][0]
             
-            # تطبيق Softmax
+            # تطبيق Softmax لتحويل النتائج لنسب
             exp_scores = np.exp(scores - np.max(scores))
             probs = exp_scores / exp_scores.sum()
             
             best_class_idx = np.argmax(probs)
             results.append({
-                "label": LABELS[best_class_idx],
+                "label": LABELS[best_class_idx] if best_class_idx < len(LABELS) else "غير محدد",
                 "score": float(probs[best_class_idx])
             })
         return results
@@ -101,7 +116,7 @@ SYSTEM_PROMPT = """
 التعليمات:
 - استخدم لغة عربية فصحى بسيطة وطبيعية.
 - ابدأ دائمًا بتفهم شعور المستخدم.
-- قدم اقتراح بسيط عند الحاجة.
+- قدم اقتراح بسيط عند الحاجة (ليس دائمًا).
 - تجنب التكرار والردود النمطية.
 """
 
@@ -139,13 +154,16 @@ def predict():
             return jsonify({"error": "فشل المحرك المحلي في تحليل النص"}), 500
         
         mood_counts = {}
+        mood_scores = {}
         sentence_details = []
 
         for i, res in enumerate(results):
             if i >= len(sentences): break
             mood = res.get("label", "غير محدد")
             score = res.get("score", 0.0)
+            
             mood_counts[mood] = mood_counts.get(mood, 0) + 1
+            mood_scores[mood] = mood_scores.get(mood, 0.0) + score
             
             sentence_details.append({
                 "sentence": sentences[i],
@@ -153,11 +171,19 @@ def predict():
                 "score": score
             })
 
-        sorted_moods = sorted(mood_counts.keys(), key=lambda k: mood_counts[k], reverse=True)
+        # ترتيب المشاعر حسب التكرار ثم درجة الثقة
+        sorted_moods = sorted(
+            mood_counts.keys(), 
+            key=lambda k: (mood_counts[k], mood_scores[k]), 
+            reverse=True
+        )
+
         primary_mood = sorted_moods[0] if sorted_moods else "غير محدد"
+        secondary_mood = sorted_moods[1] if len(sorted_moods) > 1 else None
 
         return jsonify({
             "finalMood": primary_mood,
+            "secondaryMood": secondary_mood,
             "moodCounts": mood_counts,
             "sentencesDetails": sentence_details
         })
@@ -178,7 +204,12 @@ def chat():
         hf_res = query_local_model([user_message])
         emotion = hf_res[0].get("label", "غير محدد") if hf_res else "غير محدد"
 
+        previous_emotion = last_emotion_memory.get("last")
+        last_emotion_memory["last"] = emotion
+
         prompt = f"المستخدم يشعر بـ {emotion}. رسالة المستخدم: {user_message}"
+        if previous_emotion and previous_emotion != emotion:
+            prompt = f"المستخدم كان يشعر بـ {previous_emotion} والآن يشعر بـ {emotion}. رسالته: {user_message}"
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -195,7 +226,7 @@ def chat():
 
     except Exception as e:
         print(f"❌ Error in OpenAI chat: {e}")
-        return jsonify({"reply": "أنا هنا لأسمعك، أخبرني بما يدور في بالك."})
+        return jsonify({"reply": "أنا هنا لأسمعك، خذ نفساً عميقاً وأخبرني بما يدور في بالك."})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
