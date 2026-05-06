@@ -1,9 +1,11 @@
 import re
 import os
-import requests  # ضرورية لإرسال الطلبات لـ Hugging Face
+import numpy as np
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from openai import OpenAI
+import onnxruntime as ort
+from transformers import AutoTokenizer
 
 # إعداد السيرفر لخدمة ملفات الموقع
 app = Flask(__name__, static_folder='.', static_url_path='')
@@ -15,35 +17,48 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 # ------------------------------------------------
-# ⚙️ Cloud AI System (Hugging Face Inference)
+# ⚙️ Local AI System (ONNX Engine) - "أناه المستقل"
 # ------------------------------------------------
-# الرابط الخاص بموديلك على Hugging Face
-HF_API_URL = "https://api-inference.huggingface.co/models/gala97/anah-emotions-marbert"
-# قراءة التوكن من إعدادات Render لضمان الأمان
-HF_TOKEN = os.environ.get("HF_TOKEN")
+print("⏳ Loading Anah ONNX Engine locally...")
 
-print("⏳ Starting Anah Cloud Engine...")
+try:
+    # تحميل التوكنايزر والموديل من الملفات المحلية التي قمتِ برفعها
+    tokenizer = AutoTokenizer.from_pretrained(".")
+    # إنشاء جلسة عمل للموديل المحسن ONNX
+    # ملاحظة: تأكدي من تسمية الملف model.onnx في مشروعك
+    onnx_session = ort.InferenceSession("model.onnx")
+    
+    # قائمة المشاعر بترتيب الموديل الخاص بكِ
+    LABELS = ["هادئ", "سعيد", "حزين", "غاضب", "متوتر", "تعبان"]
+    print("✅ Local Model Loaded Successfully!")
+except Exception as e:
+    print(f"❌ Error loading local ONNX model: {e}")
 
-def query_hf_model(text_list):
-    """دالة لإرسال النص لموديل MARBERT على Hugging Face واستقبال النتائج"""
-    if not HF_TOKEN:
-        print("❌ Error: HF_TOKEN not found in environment variables")
-        return None
-        
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+def query_local_model(text_list):
+    """دالة لتحليل النصوص محلياً باستخدام ONNX دون الحاجة لـ Hugging Face"""
+    results = []
     try:
-        # إرسال طلب Post مع مهلة انتظار كافية
-        response = requests.post(HF_API_URL, headers=headers, json={"inputs": text_list}, timeout=20)
-        result = response.json()
-        
-        # إذا كان الموديل لا يزال يحمل، سيقوم Hugging Face بإرجاع حقل تقديري للوقت
-        if isinstance(result, dict) and "estimated_time" in result:
-            print(f"⏳ Model is loading... Estimated time: {result['estimated_time']}")
-            return {"loading": True}
+        for text in text_list:
+            # معالجة النص وتحويله لتنسيق يفهمه الموديل
+            inputs = tokenizer(text, return_tensors="np", padding=True, truncation=True)
+            ort_inputs = {k: v for k, v in inputs.items()}
             
-        return result
+            # تشغيل الموديل والحصول على النتائج
+            ort_outs = onnx_session.run(None, ort_inputs)
+            scores = ort_outs[0][0]
+            
+            # تطبيق Softmax بسيط لتحويل النتائج لنسب مئوية (Scores)
+            exp_scores = np.exp(scores - np.max(scores))
+            probs = exp_scores / exp_scores.sum()
+            
+            best_class_idx = np.argmax(probs)
+            results.append({
+                "label": LABELS[best_class_idx],
+                "score": float(probs[best_class_idx])
+            })
+        return results
     except Exception as e:
-        print(f"❌ Connection Error to Hugging Face: {e}")
+        print(f"❌ Analysis Error: {e}")
         return None
 
 # ------------------------------------------------
@@ -88,33 +103,19 @@ def predict():
         sentences = [text]
 
     try:
-        results = query_hf_model(sentences)
+        results = query_local_model(sentences)
         
-        # معالجة حالة تحميل الموديل أو الأخطاء
-        if results is None or (isinstance(results, dict) and ("error" in results or "loading" in results)):
-            return jsonify({"error": "الموديل السحابي جاري التحميل، يرجى المحاولة بعد لحظات"}), 503
+        if results is None:
+            return jsonify({"error": "فشل المحرك المحلي في تحليل النص"}), 500
         
-        # تصحيح ذكي لشكل البيانات القادمة من Hugging Face
-        # قد يأتي الرد كـ [ [{label:.., score:..}] ] أو [ {label:.., score:..} ]
-        processed_results = []
-        if isinstance(results, list):
-            for res in results:
-                if isinstance(res, list) and len(res) > 0:
-                    processed_results.append(res[0])
-                elif isinstance(res, dict):
-                    processed_results.append(res)
-
-        if not processed_results:
-             return jsonify({"error": "فشل في معالجة نتائج التحليل"}), 500
-
         mood_counts = {}
         mood_scores = {}
         sentence_details = []
 
-        for i, res in enumerate(processed_results):
+        for i, res in enumerate(results):
             if i >= len(sentences): break
             mood = res.get("label", "غير محدد")
-            score = float(res.get("score", 0.0))
+            score = res.get("score", 0.0)
             
             mood_counts[mood] = mood_counts.get(mood, 0) + 1
             mood_scores[mood] = mood_scores.get(mood, 0.0) + score
@@ -154,16 +155,9 @@ def chat():
         return jsonify({"reply": "اكتب جملة أوضح قليلاً لأتمكن من مساعدتك."})
 
     try:
-        emotion = "غير محدد"
-        hf_res = query_hf_model([user_message])
-        
-        # استخراج العاطفة للشات بوت بمرونة
-        if isinstance(hf_res, list) and len(hf_res) > 0:
-            first_res = hf_res[0]
-            if isinstance(first_res, list) and len(first_res) > 0:
-                emotion = first_res[0].get("label", "غير محدد")
-            elif isinstance(first_res, dict):
-                emotion = first_res.get("label", "غير محدد")
+        # استخدام المحرك المحلي لتحليل عاطفة الرسالة
+        hf_res = query_local_model([user_message])
+        emotion = hf_res[0].get("label", "غير محدد") if hf_res else "غير محدد"
 
         previous_emotion = last_emotion_memory.get("last")
         last_emotion_memory["last"] = emotion
@@ -191,5 +185,4 @@ def chat():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    # التشغيل على 0.0.0.0 ضروري لـ Render لاستقبال الطلبات الخارجية
     app.run(host="0.0.0.0", port=port, debug=False)
