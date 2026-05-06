@@ -20,9 +20,8 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 # ------------------------------------------------
 # ⚙️ Cloud Storage & AI Engine (Google Drive + ONNX)
 # ------------------------------------------------
-# المعرف الخاص بالملف الأصلي المستقر (model.onnx)
-FILE_ID = "1FBS7ZkBoSABvmeKDpNL92o1VWsSTaYpY" 
-
+# المعرف الخاص بملفك من رابط جوجل درايف الذي زودتني به
+FILE_ID = "1FBS7ZkBoSABvmeKDpNL92o1VWsSTaYpY"
 # تحديد المسار المطلق لضمان عمل الموديل في بيئة Linux الخاصة بـ Render
 current_dir = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(current_dir, "model.onnx")
@@ -30,10 +29,10 @@ MODEL_PATH = os.path.join(current_dir, "model.onnx")
 def download_model_from_drive():
     """تحميل الموديل من جوجل درايف إذا لم يكن موجوداً على السيرفر"""
     if not os.path.exists(MODEL_PATH):
-        print("⏳ Downloading Anah Stable Model from Google Drive...")
+        print("⏳ Downloading Anah Model from Google Drive...")
         url = f'https://drive.google.com/uc?id={FILE_ID}'
         try:
-            # التحميل باستخدام مكتبة gdown لتجاوز شاشات التحذير
+            # التحميل باستخدام مكتبة gdown لتجاوز شاشات التحذير للملفات الكبيرة
             gdown.download(url, MODEL_PATH, quiet=False)
             print("✅ Download Complete!")
         except Exception as e:
@@ -44,51 +43,27 @@ download_model_from_drive()
 
 print("⏳ Loading Anah ONNX Engine locally...")
 
-onnx_session = None
-tokenizer = None
-# قائمة المشاعر المعتمدة في الموديل المستقر (تأكدي من ترتيبها)
-LABELS = ["هادئ", "سعيد", "حزين", "غاضب", "متوتر", "تعبان"]
-
 try:
     # تحميل التوكنايزر من الملفات المحلية الموجودة في نفس المجلد
     tokenizer = AutoTokenizer.from_pretrained(current_dir)
-    
-    # تحسين استهلاك الذاكرة RAM للسيرفر لتجنب الانهيار
-    sess_options = ort.SessionOptions()
-    sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
-    sess_options.intra_op_num_threads = 1
-    sess_options.inter_op_num_threads = 1
-    
     # إنشاء جلسة عمل للموديل المحسن ONNX
-    onnx_session = ort.InferenceSession(MODEL_PATH, sess_options)
+    onnx_session = ort.InferenceSession(MODEL_PATH)
     
-    print("✅ System Ready & Back to Stable Version Successfully!")
+    # قائمة المشاعر المعتمدة في مشروعك
+    LABELS = ["هادئ", "سعيد", "حزين", "غاضب", "متوتر", "تعبان"]
+    print("✅ Local Model Loaded Successfully!")
 except Exception as e:
     print(f"❌ Critical Error loading ONNX model: {e}")
 
 def query_local_model(text_list):
-    """دالة لتحليل النصوص محلياً باستخدام ONNX مع معالجة ذكية للجمل الإيجابية"""
+    """دالة لتحليل النصوص محلياً باستخدام ONNX"""
     results = []
-    if onnx_session is None or tokenizer is None:
-        return None
-        
     try:
         for text in text_list:
-            text_clean = text.strip()
-            
-            # 🛡️ معالجة فورية لكلمات "لا بأس" والهدوء (تجاوز الموديل لزيادة الدقة)
-            calm_keywords = ["لا باس", "لا بأس", "انا كويسه", "انا كويسة", "الحمدلله", "الحمد لله", "بخير", "تمام"]
-            if any(word in text_clean for word in calm_keywords):
-                results.append({
-                    "label": "هادئ", 
-                    "score": 0.99
-                })
-                continue 
-            
-            # المعالجة عبر الموديل
-            inputs = tokenizer(text_clean, return_tensors="np", padding=True, truncation=True)
+            inputs = tokenizer(text, return_tensors="np", padding=True, truncation=True)
             ort_inputs = {k: v for k, v in inputs.items()}
             
+            # تشغيل الموديل
             ort_outs = onnx_session.run(None, ort_inputs)
             scores = ort_outs[0][0]
             
@@ -98,7 +73,7 @@ def query_local_model(text_list):
             
             best_class_idx = np.argmax(probs)
             results.append({
-                "label": LABELS[best_class_idx] if best_class_idx < len(LABELS) else "غير محدد",
+                "label": LABELS[best_class_idx],
                 "score": float(probs[best_class_idx])
             })
         return results
@@ -116,7 +91,7 @@ SYSTEM_PROMPT = """
 التعليمات:
 - استخدم لغة عربية فصحى بسيطة وطبيعية.
 - ابدأ دائمًا بتفهم شعور المستخدم.
-- قدم اقتراح بسيط عند الحاجة (ليس دائمًا).
+- قدم اقتراح بسيط عند الحاجة.
 - تجنب التكرار والردود النمطية.
 """
 
@@ -171,7 +146,6 @@ def predict():
                 "score": score
             })
 
-        # ترتيب المشاعر حسب التكرار ثم درجة الثقة
         sorted_moods = sorted(
             mood_counts.keys(), 
             key=lambda k: (mood_counts[k], mood_scores[k]), 
@@ -190,7 +164,7 @@ def predict():
 
     except Exception as e:
         print(f"❌ Error during prediction: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"حدث خطأ أثناء تحليل النص: {str(e)}"}), 500
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -230,4 +204,4 @@ def chat():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=port, debug=True)
