@@ -1,0 +1,48 @@
+{
+  "architectures": [
+    "BertForSequenceClassification"
+  ],
+  "attention_probs_dropout_prob": 0.1,
+  "classifier_dropout": null,
+  "directionality": "bidi",
+  "dtype": "float32",
+  "gradient_checkpointing": false,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "id2label": {
+    "0": "\u0647\u0627\u062f\u0626",
+    "1": "\u0633\u0639\u064a\u062f",
+    "2": "\u062d\u0632\u064a\u0646",
+    "3": "\u063a\u0627\u0636\u0628",
+    "4": "\u0645\u062a\u0648\u062a\u0631",
+    "5": "\u062a\u0639\u0628\u0627\u0646"
+  },
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "label2id": {
+    "\u062a\u0639\u0628\u0627\u0646": 5,
+    "\u062d\u0632\u064a\u0646": 2,
+    "\u0633\u0639\u064a\u062f": 1,
+    "\u063a\u0627\u0636\u0628": 3,
+    "\u0645\u062a\u0648\u062a\u0631": 4,
+    "\u0647\u0627\u062f\u0626": 0
+  },
+  "layer_norm_eps": 1e-12,
+  "max_position_embeddings": 512,
+  "model_type": "bert",
+  "num_attention_heads": 12,
+  "num_hidden_layers": 12,
+  "pad_token_id": 0,
+  "pooler_fc_size": 768,
+  "pooler_num_attention_heads": 12,
+  "pooler_num_fc_layers": 3,
+  "pooler_size_per_head": 128,
+  "pooler_type": "first_token_transform",
+  "position_embedding_type": "absolute",
+  "problem_type": "single_label_classification",
+  "transformers_version": "4.57.6",
+  "type_vocab_size": 2,
+  "use_cache": false,
+  "vocab_size": 100000
+}
