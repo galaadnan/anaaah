@@ -299,7 +299,12 @@ function initChatbot() {
         };
         append(text, "user"); inputEl.value = "";
         try {
-            const res = await fetch("[https://anaaah-1.onrender.com/predict](https://anaaah-1.onrender.com/predict)", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
+            // تم تحديث الرابط ليشير إلى مسار /chat السحابي لضمان عمل الشات بوت على جميع الأجهزة
+            const res = await fetch("https://anaaah-1.onrender.com/chat", { 
+                method: "POST", 
+                headers: { "Content-Type": "application/json" }, 
+                body: JSON.stringify({ message: text }) 
+            });
             const data = await res.json();
             append(data.reply || "🤍", "bot");
         } catch { append("عذراً، حدث خطأ في الاتصال 💔", "bot"); }
