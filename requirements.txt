@@ -3,5 +3,5 @@ flask-cors
 gunicorn
 openai
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.9.0+cpu
+torch==2.9.0+cpu --no-cache-dir
 transformers
