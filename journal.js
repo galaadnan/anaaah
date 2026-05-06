@@ -87,14 +87,12 @@ function initDailyPrompt() {
 }
 
 /**
- * 🧠 الربط مع محرك الذكاء الاصطناعي (Google Colab via Ngrok)
+ * 🧠 الربط مع محرك الذكاء الاصطناعي السحابي المستقل (Render)
  */
 async function runLocalAnalysis(text) {
   try {
-    // التعديل الجوهري: الرابط الجديد الذي حصلتِ عليه من Ngrok
-    const NGROK_URL = "https://superjet-dividing-ravage.ngrok-free.dev";
-    
-    const response = await fetch(`${NGROK_URL}/predict`, {
+    // التعديل الجوهري: تم إزالة رابط Ngrok واستخدام المسار المحلي للسيرفر لتجاوز مشكلة CORS
+    const response = await fetch("/predict", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
@@ -111,10 +109,10 @@ async function runLocalAnalysis(text) {
     };
   } catch (error) {
     console.error("AI Server Error:", error);
-    // تنبيه للمهندسة غالا: تأكدي أن خلية Colab لا تزال تعمل
     return { finalMood: "⚠️ فشل الاتصال بالمحرك", secondaryMood: null, moodCounts: {}, sentencesDetails: [] };
   }
 }
+
 async function saveTodayEntry() {
   const saveBtn = document.getElementById("save");
   const noteEl = document.getElementById("note");
