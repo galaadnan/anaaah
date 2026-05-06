@@ -1,5 +1,9 @@
 flask
+flask
 flask-cors
-transformers
-torch
 openai
+# بدلاً من torch العادية، نطلب نسخة الـ CPU من مستودع خاص
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.1+cpu
+transformers
+gunicorn
