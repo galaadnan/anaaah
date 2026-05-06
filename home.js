@@ -299,7 +299,7 @@ function initChatbot() {
         };
         append(text, "user"); inputEl.value = "";
         try {
-            const res = await fetch("http://127.0.0.1:8000/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
+            const res = await fetch("[https://anaaah-1.onrender.com/predict](https://anaaah-1.onrender.com/predict)", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
             const data = await res.json();
             append(data.reply || "🤍", "bot");
         } catch { append("عذراً، حدث خطأ في الاتصال 💔", "bot"); }
