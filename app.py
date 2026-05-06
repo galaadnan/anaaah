@@ -8,7 +8,7 @@ from openai import OpenAI
 # إعداد السيرفر لخدمة ملفات الموقع
 app = Flask(__name__, static_folder='.', static_url_path='')
 
-# تحديث: تفعيل CORS بشكل كامل للسماح للجوال بالاتصال بالسيرفر السحابي
+# تفعيل CORS بشكل كامل لضمان عمل الجوال واللابتوب مع Render
 CORS(app, resources={r"/*": {"origins": "*"}}) 
 
 # إعداد عميل OpenAI للشات بوت
@@ -32,8 +32,16 @@ def query_hf_model(text_list):
         
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     try:
-        response = requests.post(HF_API_URL, headers=headers, json={"inputs": text_list}, timeout=10)
-        return response.json()
+        # إرسال طلب Post مع مهلة انتظار كافية
+        response = requests.post(HF_API_URL, headers=headers, json={"inputs": text_list}, timeout=20)
+        result = response.json()
+        
+        # إذا كان الموديل لا يزال يحمل، سيقوم Hugging Face بإرجاع حقل تقديري للوقت
+        if isinstance(result, dict) and "estimated_time" in result:
+            print(f"⏳ Model is loading... Estimated time: {result['estimated_time']}")
+            return {"loading": True}
+            
+        return result
     except Exception as e:
         print(f"❌ Connection Error to Hugging Face: {e}")
         return None
@@ -82,19 +90,29 @@ def predict():
     try:
         results = query_hf_model(sentences)
         
-        if results is None or "error" in str(results):
+        # معالجة حالة تحميل الموديل أو الأخطاء
+        if results is None or (isinstance(results, dict) and ("error" in results or "loading" in results)):
             return jsonify({"error": "الموديل السحابي جاري التحميل، يرجى المحاولة بعد لحظات"}), 503
         
-        if isinstance(results, list) and len(results) > 0 and isinstance(results[0], list):
-            processed_results = results[0]
-        else:
-            processed_results = results
+        # تصحيح ذكي لشكل البيانات القادمة من Hugging Face
+        # قد يأتي الرد كـ [ [{label:.., score:..}] ] أو [ {label:.., score:..} ]
+        processed_results = []
+        if isinstance(results, list):
+            for res in results:
+                if isinstance(res, list) and len(res) > 0:
+                    processed_results.append(res[0])
+                elif isinstance(res, dict):
+                    processed_results.append(res)
+
+        if not processed_results:
+             return jsonify({"error": "فشل في معالجة نتائج التحليل"}), 500
 
         mood_counts = {}
         mood_scores = {}
         sentence_details = []
 
         for i, res in enumerate(processed_results):
+            if i >= len(sentences): break
             mood = res.get("label", "غير محدد")
             score = float(res.get("score", 0.0))
             
@@ -125,7 +143,7 @@ def predict():
 
     except Exception as e:
         print(f"❌ Error during prediction: {e}")
-        return jsonify({"error": "حدث خطأ أثناء تحليل النص سحابياً"}), 500
+        return jsonify({"error": f"حدث خطأ أثناء تحليل النص: {str(e)}"}), 500
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -138,11 +156,14 @@ def chat():
     try:
         emotion = "غير محدد"
         hf_res = query_hf_model([user_message])
-        if hf_res and isinstance(hf_res, list):
-            if isinstance(hf_res[0], list):
-                emotion = hf_res[0][0].get("label", "غير محدد")
-            else:
-                emotion = hf_res.get("label", "غير محدد") if isinstance(hf_res, dict) else hf_res[0].get("label", "غير محدد")
+        
+        # استخراج العاطفة للشات بوت بمرونة
+        if isinstance(hf_res, list) and len(hf_res) > 0:
+            first_res = hf_res[0]
+            if isinstance(first_res, list) and len(first_res) > 0:
+                emotion = first_res[0].get("label", "غير محدد")
+            elif isinstance(first_res, dict):
+                emotion = first_res.get("label", "غير محدد")
 
         previous_emotion = last_emotion_memory.get("last")
         last_emotion_memory["last"] = emotion
@@ -170,5 +191,5 @@ def chat():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    # التشغيل على 0.0.0.0 لاستقبال الطلبات الخارجية في Render
+    # التشغيل على 0.0.0.0 ضروري لـ Render لاستقبال الطلبات الخارجية
     app.run(host="0.0.0.0", port=port, debug=False)
