@@ -6,7 +6,7 @@ from flask_cors import CORS
 from transformers import pipeline, AutoModelForSequenceClassification, AutoTokenizer
 from openai import OpenAI
 
-# تقليل استهلاك الذاكرة عبر تعطيل التدرجات (Gradients)
+# تقليل استهلاك الذاكرة عبر تعطيل التدرجات (Gradients) ومنع العمليات الحسابية الزائدة
 torch.set_grad_enabled(False)
 
 # Configure server to serve static files (CSS, JS, Images)
@@ -28,18 +28,21 @@ BACKUP_MODEL_PATH = os.path.join(BASE_DIR, "ai model", "UBC-NLP_MARBERTv2", "che
 print("⏳ Starting Anah engine...")
 
 try:
-    # تعديل Plan A لتقليل استهلاك الرام عند التحميل
+    # تعديل Plan A لتقليل استهلاك الرام عند التحميل عبر lazy loading
     pipe = pipeline(
         "text-classification", 
         model=PRIMARY_MODEL, 
         truncation=True,
-        model_kwargs={"low_cpu_mem_usage": True} # سطر جوهري لتقليل الذاكرة
+        model_kwargs={
+            "low_cpu_mem_usage": True,  # سطر جوهري لتقليل الذاكرة
+            "torch_dtype": torch.float16 if torch.cuda.is_available() else torch.float32 # اختيار الدقة الأنسب للموارد
+        }
     )
     print(f"✅ (Plan A): Fast model loaded successfully from {PRIMARY_MODEL}")
 except Exception as e1:
     print(f"⚠️ Failed to connect to the fast model, switching to Plan B... Reason: {e1}")
     try:
-        # تعديل Plan B لتقليل استهلاك الرام
+        # تعديل Plan B لتقليل استهلاك الرام عند تحميل الموديل الثقيل محلياً
         pipe = pipeline(
             "text-classification", 
             model=BACKUP_MODEL_PATH, 
@@ -108,7 +111,9 @@ def predict():
         sentences = [text]
 
     try:
-        results = pipe(sentences)
+        # استخدام torch.no_grad لضمان عدم استهلاك الذاكرة أثناء التوقع
+        with torch.no_grad():
+            results = pipe(sentences)
         
         all_moods = []
         sentence_details = []
@@ -169,7 +174,8 @@ def chat():
     try:
         emotion = "غير محدد"
         if pipe:
-            emotion_result = pipe(user_message)[0]
+            with torch.no_grad():
+                emotion_result = pipe(user_message)[0]
             emotion = emotion_result.get("label", "غير محدد")
 
         previous_emotion = last_emotion_memory.get("last")
@@ -198,6 +204,7 @@ def chat():
         return jsonify({"reply": "خذ لحظة هدوء قصيرة، والتنفس ببطء قد يساعد."})
 
 if __name__ == "__main__":
+    # الحصول على المنفذ من متغيرات البيئة لـ Render
     port = int(os.environ.get("PORT", 8000))
-    # التشغيل على 0.0.0.0 لاستقبال الطلبات الخارجية في Render
+    # التشغيل على 0.0.0.0 ضروري للنشر السحابي
     app.run(host="0.0.0.0", port=port, debug=False)
