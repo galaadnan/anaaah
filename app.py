@@ -1,6 +1,7 @@
 import re
 import os
 import numpy as np
+import gdown
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from openai import OpenAI
@@ -17,37 +18,56 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 # ------------------------------------------------
-# ⚙️ Local AI System (ONNX Engine) - "أناه المستقل"
+# ⚙️ Cloud Storage & AI Engine (Google Drive + ONNX)
 # ------------------------------------------------
+# المعرف الخاص بملفك من رابط جوجل درايف الذي زودتني به
+FILE_ID = "1FBS7ZkBoSABvmeKDpNL92o1VWsSTaYpY"
+# تحديد المسار المطلق لضمان عمل الموديل في بيئة Linux الخاصة بـ Render
+current_dir = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(current_dir, "model.onnx")
+
+def download_model_from_drive():
+    """تحميل الموديل من جوجل درايف إذا لم يكن موجوداً على السيرفر"""
+    if not os.path.exists(MODEL_PATH):
+        print("⏳ Downloading Anah Model from Google Drive...")
+        url = f'https://drive.google.com/uc?id={FILE_ID}'
+        try:
+            # التحميل باستخدام مكتبة gdown لتجاوز شاشات التحذير للملفات الكبيرة
+            gdown.download(url, MODEL_PATH, quiet=False)
+            print("✅ Download Complete!")
+        except Exception as e:
+            print(f"❌ Download Failed: {e}")
+
+# تنفيذ التحميل بمجرد بدء تشغيل السيرفر
+download_model_from_drive()
+
 print("⏳ Loading Anah ONNX Engine locally...")
 
 try:
-    # تحميل التوكنايزر والموديل من الملفات المحلية التي قمتِ برفعها
-    tokenizer = AutoTokenizer.from_pretrained(".")
+    # تحميل التوكنايزر من الملفات المحلية الموجودة في نفس المجلد
+    tokenizer = AutoTokenizer.from_pretrained(current_dir)
     # إنشاء جلسة عمل للموديل المحسن ONNX
-    # ملاحظة: تأكدي من تسمية الملف model.onnx في مشروعك
-    onnx_session = ort.InferenceSession("model.onnx")
+    onnx_session = ort.InferenceSession(MODEL_PATH)
     
-    # قائمة المشاعر بترتيب الموديل الخاص بكِ
+    # قائمة المشاعر المعتمدة في مشروعك
     LABELS = ["هادئ", "سعيد", "حزين", "غاضب", "متوتر", "تعبان"]
     print("✅ Local Model Loaded Successfully!")
 except Exception as e:
-    print(f"❌ Error loading local ONNX model: {e}")
+    print(f"❌ Critical Error loading ONNX model: {e}")
 
 def query_local_model(text_list):
-    """دالة لتحليل النصوص محلياً باستخدام ONNX دون الحاجة لـ Hugging Face"""
+    """دالة لتحليل النصوص محلياً باستخدام ONNX"""
     results = []
     try:
         for text in text_list:
-            # معالجة النص وتحويله لتنسيق يفهمه الموديل
             inputs = tokenizer(text, return_tensors="np", padding=True, truncation=True)
             ort_inputs = {k: v for k, v in inputs.items()}
             
-            # تشغيل الموديل والحصول على النتائج
+            # تشغيل الموديل
             ort_outs = onnx_session.run(None, ort_inputs)
             scores = ort_outs[0][0]
             
-            # تطبيق Softmax بسيط لتحويل النتائج لنسب مئوية (Scores)
+            # تطبيق Softmax لتحويل النتائج لنسب
             exp_scores = np.exp(scores - np.max(scores))
             probs = exp_scores / exp_scores.sum()
             
@@ -155,7 +175,6 @@ def chat():
         return jsonify({"reply": "اكتب جملة أوضح قليلاً لأتمكن من مساعدتك."})
 
     try:
-        # استخدام المحرك المحلي لتحليل عاطفة الرسالة
         hf_res = query_local_model([user_message])
         emotion = hf_res[0].get("label", "غير محدد") if hf_res else "غير محدد"
 
@@ -182,8 +201,7 @@ def chat():
     except Exception as e:
         print(f"❌ Error in OpenAI chat: {e}")
         return jsonify({"reply": "أنا هنا لأسمعك، خذ نفساً عميقاً وأخبرني بما يدور في بالك."})
+
 if __name__ == "__main__":
-    # هذا السطر سيعمل فقط إذا شغلتِ الملف بـ python app.py
-    # أما في Render (عبر Gunicorn) فسيتم تجاهله
     port = int(os.environ.get("PORT", 8000))
     app.run(host="0.0.0.0", port=port, debug=True)
