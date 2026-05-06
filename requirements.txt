@@ -1,7 +1,8 @@
 flask
 flask-cors
 gunicorn
-openai
+# نسخة محددة جداً وخفيفة من torch
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.9.0+cpu --no-cache-dir
-transformers
+torch==2.2.1+cpu
+transformers==4.38.0
+# احذفي أي مكتبات أخرى مثل pandas أو numpy إذا كنتِ لا تستخدمينها في app.py
