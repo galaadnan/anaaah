@@ -20,8 +20,9 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 # ------------------------------------------------
 # ⚙️ Cloud Storage & AI Engine (Google Drive + ONNX)
 # ------------------------------------------------
-# المعرف الخاص بملفك الجديد من رابط جوجل درايف
-FILE_ID = "1nCbz-QB-pymtmDauZfWzBgCbTKTnHbtl" 
+# المعرف الخاص بالملف الجديد المضغوط (model_quantized.onnx)
+FILE_ID = "1FBS7ZkBoSABvmeKDpNL92o1VWsSTaYpY" 
+
 # تحديد المسار المطلق لضمان عمل الموديل في بيئة Linux الخاصة بـ Render
 current_dir = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(current_dir, "model.onnx")
@@ -29,10 +30,10 @@ MODEL_PATH = os.path.join(current_dir, "model.onnx")
 def download_model_from_drive():
     """تحميل الموديل من جوجل درايف إذا لم يكن موجوداً على السيرفر"""
     if not os.path.exists(MODEL_PATH):
-        print("⏳ Downloading Anah Model from Google Drive...")
+        print("⏳ Downloading Anah Compressed Model from Google Drive...")
         url = f'https://drive.google.com/uc?id={FILE_ID}'
         try:
-            # التحميل باستخدام مكتبة gdown لتجاوز شاشات التحذير للملفات الكبيرة
+            # التحميل باستخدام مكتبة gdown لتجاوز شاشات التحذير
             gdown.download(url, MODEL_PATH, quiet=False)
             print("✅ Download Complete!")
         except Exception as e:
@@ -46,8 +47,15 @@ print("⏳ Loading Anah ONNX Engine locally...")
 try:
     # تحميل التوكنايزر من الملفات المحلية الموجودة في نفس المجلد
     tokenizer = AutoTokenizer.from_pretrained(current_dir)
+    
+    # تحسين استهلاك الذاكرة RAM للسيرفر
+    sess_options = ort.SessionOptions()
+    sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
+    sess_options.intra_op_num_threads = 1
+    sess_options.inter_op_num_threads = 1
+    
     # إنشاء جلسة عمل للموديل المحسن ONNX
-    onnx_session = ort.InferenceSession(MODEL_PATH)
+    onnx_session = ort.InferenceSession(MODEL_PATH, sess_options)
     
     # قائمة المشاعر المعتمدة في مشروعك
     LABELS = ["هادئ", "سعيد", "حزين", "غاضب", "متوتر", "تعبان"]
@@ -65,11 +73,10 @@ def query_local_model(text_list):
             # --------------------------------------------------------
             # 💡 التعديل الهندسي المخصص: معالجة "لا بأس" والكلمات الإيجابية العنيدة
             # --------------------------------------------------------
-            # قائمة الكلمات التي تعبر عن حالة "لا بأس / هادئ"
             calm_keywords = ["لا باس", "لا بأس", "انا كويسه", "انا كويسة", "الحمدلله", "الحمد لله", "بخير"]
             if any(word in text_clean for word in calm_keywords):
                 results.append({
-                    "label": "هادئ", # سيتم إرسالها كـ "هادئ" لتظهر في الموقع "لا بأس"
+                    "label": "هادئ", 
                     "score": 0.99
                 })
                 continue 
@@ -219,4 +226,5 @@ def chat():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    # تقليل عدد العمال لتوفير الذاكرة في البيئة السحابية
+    app.run(host="0.0.0.0", port=port, debug=False)
