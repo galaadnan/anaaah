@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>أناه | التحليل الشعوري</title>
+
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="page-analyze has-animated-bg">
+
+  <div class="bg-blobs">
+    <div class="blob mint"></div>
+    <div class="blob peach"></div>
+    <div class="blob purple"></div>
+  </div>
+
+  <header class="site-header">
+    <div class="shell">
+      <nav class="nav">
+        <a href="index.html" class="brand">
+          <img src="images/anah.jpeg" alt="anah logo" class="brand-icon" />
+          <span>أناه</span>
+        </a>
+        <ul class="nav-links">
+          <li><a href="home.html" class="anim-underline">الرئيسية</a></li>
+          <li><a href="journal.html" class="anim-underline">اليوميات</a></li>
+          <li><a href="analyze.html" class="active anim-underline">تحليل المزاج</a></li>
+        </ul>
+        <a id="authButton" href="SignOrLogin.html" class="pill-button pill-ghost">تسجيل / دخول</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="analyze-main shell">
+    <div class="analyze-container">
+
+      <!-- الهيدر العلوي لصفحة التحليل -->
+      <section class="analyze-header-top">
+        <div>
+          <p class="eyebrow fade-up">لوحة التحكم الذكية</p>
+          <h1 class="analyze-title fade-up">التحليل الشعوري </h1>
+          <p class="analyze-lead type-soft fade-up" id="analysisLead">
+            نجمع لك البيانات من مذكراتك واختياراتك اليومية لنقدم لك رؤية شاملة لاتزانك العاطفي.
+          </p>
+        </div>
+        <div class="analyze-header-meta">
+          <span class="an-meta-chip" id="analysisRange">آخر ٩٠ يوم</span>
+        </div>
+      </section>
+
+      <!-- أزرار الفلترة الزمنية -->
+      <div class="an-chip-group fade-up" style="margin-bottom:25px; display: flex; gap: 10px;">
+        <button class="pill-button pill-ghost an-chip" data-range="7">آخر ٧ أيام</button>
+        <button class="pill-button pill-ghost an-chip" data-range="30">آخر ٣٠ يوم</button>
+        <button class="pill-button pill-primary an-chip is-active" data-range="90">آخر ٩٠ يوم</button>
+      </div>
+
+      <!-- التوزيع الأساسي: الرسم البياني يسار، المشاعر والتوصيات يمين -->
+      <section class="an-grid slide-right">
+        
+        <!-- العمود الأول (يمين): المشاعر والتوصيات -->
+        <div class="an-right-col">
+          
+          <section class="an-card">
+            <h2 id="topMoodsTitle">المشاعر الأكثر ظهوراً</h2>
+            <div class="an-metrics" id="topMoods">
+              <!-- يتولد تلقائياً من الـ JS -->
+            </div>
+          </section>
+
+          <section class="an-card" id="recommendationCard">
+            <h2>توصيات مدعومة بالبيانات</h2>
+            <p class="an-subtext">بناءً على حالتك النفسية الأخيرة ونمط مشاعرك المدمج.</p>
+            <p class="an-subtext" id="recWeekNote"></p>
+            
+            <div class="rec-quote" id="recQuote">
+              <!-- التوصية تظهر هنا -->
+            </div>
+
+            <div class="rec-section">
+              <h4>إجراءات سريعة ⚡</h4>
+              <ul id="recQuick"></ul>
+            </div>
+
+            <div class="rec-section">
+              <h4>خطة تعزيز الوعي 🧘🏻‍♀️</h4>
+              <ul id="recDaily"></ul>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- العمود الثاني (يسار): الرسم البياني -->
+        <div class="an-left-col">
+          <section class="an-card an-card--primary">
+            <h2 id="chartTitle">مخطط الاستقرار الشعوري</h2>
+            <p class="an-subtext" id="chartSubtext">
+              يوضح التوزيع النسبي لمشاعرك بناءً على تحليل أناه الذكي وتفاعلاتك المسجلة.
+            </p>
+            <div class="an-chart-wrap" style="margin-top: 20px;">
+              <canvas id="moodChart"></canvas>
+            </div>
+          </section>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-row">
+      <div class="footer-left">
+        <a href="index.html" class="brand">
+          <img src="images/anah.jpeg" alt="anah logo" class="brand-icon" />
+          <span>أناه</span>
+        </a>
+        <span class="footer-copy"> © <span id="year">2026</span> أناه </span>
+      </div>
+      <nav class="footer-links">
+        <a href="#about">عن أناه</a>
+        <span class="footer-dot">·</span>
+        <a href="team.html">فريق أناه</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="utils.js"></script>
+  <script src="home.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="analyze.js?v=unified-final"></script>
+
+  <!-- الشات بوت -->
+  <div class="chatbot-wrapper">
+    <button class="chatbot-btn" id="chatbotBtn">
+      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Chatbot" class="chatbot-icon-img" />
+    </button>
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-header">
+        <div class="chat-header-inner">
+          <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="chat-header-avatar" />
+          <span>مساعد أناه الذكي</span>
+        </div>
+        <button id="closeChat" class="chat-close-btn">×</button>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="message bot-msg">مرحباً بك 🤍.. أنا هنا لأسمعك، كيف كان يومك؟</div>
+      </div>
+      <div class="chat-input-area">
+        <input type="text" id="userMsgInput" placeholder="اكتب شعورك هنا..." />
+        <button id="sendMsgBtn">➤</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>أناه | المذكرة اليومية</title>
+
+    <link rel="stylesheet" href="styles.css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.5.1/uicons-solid-rounded/css/uicons-solid-rounded.css" />
+
+    <script type="module">
+      import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
+      env.allowRemoteModels = false;
+      env.localModelPath = './'; 
+      env.backends.onnx.wasm.proxy = false;
+      window.pipeline = pipeline;
+    </script>
+  </head>
+
+  <body class="page-journal has-animated-bg">
+    <div class="bg-blobs">
+      <div class="blob mint"></div>
+      <div class="blob peach"></div>
+      <div class="blob purple"></div>
+    </div>
+
+    <header class="site-header">
+      <div class="shell">
+        <nav class="nav">
+          <a href="index.html" class="brand">
+            <img src="images/anah.jpeg" alt="anah logo" class="brand-icon" />
+            <span>أناه</span>
+          </a>
+          <ul class="nav-links">
+            <li><a href="home.html" class="anim-underline">الرئيسية</a></li>
+            <li><a href="journal.html" class="active anim-underline">اليوميات</a></li>
+            <li><a href="analyze.html" class="anim-underline">تحليل المزاج</a></li>
+          </ul>
+          <a id="authButton" href="SignOrLogin.html" class="pill-button pill-ghost">تسجيل / دخول</a>
+        </nav>
+      </div>
+    </header>
+    
+    <main class="shell journal-main journal-container">
+      <header class="journal-header-top">
+        <div>
+          <p class="eyebrow">المذكرة اليومية</p>
+          <h1>مساحتك لكتابة يومك، بهدوء.</h1>
+          <p class="journal-lead">اكتب ما حدث معك اليوم، قيّم شعورك، وارجع لمذكراتك في أي وقت تحب.</p>
+        </div>
+        <div class="journal-meta-chip">
+          <span>اليوم:</span>
+          <span id="journal-today"></span>
+        </div>
+      </header>
+
+      <section class="journal-split-layout slide-right">
+        <aside class="journal-sidebar">
+         <section class="journal-card prompt-card">
+            <h2>إلهام للكتابة 💡</h2>
+            <p id="dailyPromptText" style="color: #555; margin: 12px 0; font-size: 0.95rem; line-height: 1.6; font-weight: 500;">
+              جاري تحميل السؤال...
+            </p>
+            <button id="newPromptBtn" class="pill-button pill-ghost" style="padding: 6px 14px; font-size: 0.8rem; width: 100%;">
+              <i class="fas fa-sync-alt" style="margin-left: 5px;"></i> سؤال آخر
+            </button>
+          </section>
+
+          <section class="journal-card streak-card">
+            <h2>سلسلة الكتابة</h2>
+            <div class="streak-row"><span>أيام متتالية</span> <strong id="curStreak">0</strong></div>
+            <div class="streak-row"><span>أفضل سلسلة</span> <strong id="bestStreak">0</strong></div>
+          </section>
+
+          <button id="showAchv" class="journal-link-btn">
+            <i class="fi fi-sr-trophy"></i> عرض الإنجازات
+          </button>
+
+          <section id="achievements" class="journal-card achievements-card" hidden>
+            <h2>إنجازاتك</h2>
+            <div id="achvList" class="achievements-list"></div>
+          </section>
+        </aside>
+
+        <section class="journal-editor-panel">
+          <section class="journal-card editor-card">
+            <header class="editor-header">
+              <div>
+                <h2>مذكرتك لليوم</h2>
+                <p class="editor-hint">يمكنك كتابة مذكرة واحدة لكل يوم.</p>
+              </div>
+            </header>
+
+            <div class="note-info" id="noteInfo">
+              <i class="fi fi-sr-info"></i>
+              <p>بعد الحفظ، سيظهر لك تحليل MARBERT لمشاعرك مباشرة في جهازك.</p>
+            </div>
+
+            <div class="rich-editor-container">
+              <div class="editor-toolbar">
+                <button type="button" onclick="formatDoc('bold')" title="عريض"><i class="fas fa-bold"></i></button>
+                <button type="button" onclick="formatDoc('italic')" title="مائل"><i class="fas fa-italic"></i></button>
+                <button type="button" onclick="formatDoc('underline')" title="تسطير"><i class="fas fa-underline"></i></button>
+                
+                <div class="color-picker-wrapper">
+                  <i class="fas fa-palette"></i>
+                  <input type="color" id="textColor" title="لون الخط" onchange="formatDoc('foreColor', this.value)">
+                </div>
+
+                <div class="emoji-wrapper">
+                  <button type="button" id="emojiBtn" title="إيموجي"><i class="fa-regular fa-face-smile"></i></button>
+                  <div id="emojiPalette" class="emoji-palette" hidden>
+                    <span onclick="insertEmoji('😊')">😊</span>
+                    <span onclick="insertEmoji('😂')">😂</span>
+                    <span onclick="insertEmoji('🥰')">🥰</span>
+                    <span onclick="insertEmoji('😔')">😔</span>
+                    <span onclick="insertEmoji('✨')">✨</span>
+                    <span onclick="insertEmoji('💔')">💔</span>
+                    <span onclick="insertEmoji('💪')">💪</span>
+                    <span onclick="insertEmoji('😭')">😭</span>
+                  </div>
+                </div>
+
+                <label class="toolbar-btn" title="إضافة صورة">
+                  <i class="fas fa-image"></i>
+                  <input type="file" id="imageUpload" accept="image/*" hidden>
+                </label>
+              </div>
+              
+              <div id="note" class="note-area rich-textarea" contenteditable="true" placeholder="اكتب عن يومك هنا..."></div>
+            </div>
+
+            <div class="editor-actions">
+              <div class="editor-actions-left">
+                <button id="save" class="pill-button pill-primary">حفظ المذكرة</button>
+                <button id="clearToday" class="pill-button pill-ghost">مسح النص</button> 
+              </div>
+              <button id="showAll" class="journal-link-btn">
+                <i class="fa-regular fa-folder-open"></i> عرض كل المذكرات
+              </button>
+            </div>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <div id="viewModal" class="journal-modal" hidden>
+      <div class="journal-modal-dialog">
+        <button id="closeModal" class="journal-modal-close">×</button>
+        <div id="viewContent" class="journal-modal-content"></div>
+      </div>
+    </div>
+    
+    <div id="journalStatusModal" class="journal-modal" hidden>
+      <div class="journal-modal-dialog dialog-centered" style="max-width: 420px;">
+        <div class="modal-icon" style="font-size: 3rem; margin-bottom: 10px;" id="journalStatusIcon">✅</div>
+        <h3 class="modal-title" id="journalStatusTitle">تنبيه</h3>
+        <p class="modal-body" id="journalStatusMessage" style="margin-bottom: 18px; color: #555;">...</p>
+        <button id="closeJournalStatusModal" class="pill-button pill-primary full-width">حسنًا</button>
+      </div>
+    </div>
+    
+    <footer class="site-footer">
+      <div class="shell footer-row">
+        <div class="footer-left">
+          <a href="index.html" class="brand">
+            <img src="images/anah.jpeg" alt="anah logo" class="brand-icon" />
+            <span>أناه</span>
+          </a>
+          <span class="footer-copy"> © 2026 أناه </span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    
+    <script src="firebase-config.js"></script>
+    <script src="utils.js"></script>
+    <script src="journal.js?v=final" defer></script>
+    <script src="home.js"></script>
+
+    <div class="chatbot-wrapper">
+      <button class="chatbot-btn" id="chatbotBtn">
+        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Chatbot" class="chatbot-icon-img" />
+      </button>
+
+      <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+          <div class="chat-header-inner">
+            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="chat-header-avatar" />
+            <span>مساعد أناه الذكي</span>
+          </div>
+          <button id="closeChat" class="chat-close-btn">×</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="message bot-msg">مرحباً بك 🤍.. أنا هنا لأسمعك، كيف كان يومك؟</div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" id="userMsgInput" placeholder="اكتب شعورك هنا..." />
+          <button id="sendMsgBtn">➤</button>
+        </div>
+      </div>
+    </div>
+    <div id="journalChoiceModal" class="journal-modal" hidden>
+  <div class="journal-modal-dialog dialog-centered" style="max-width: 480px;">
+    <div id="choiceModalIcon" style="font-size: 3rem; margin-bottom: 10px;">⚖️</div>
+    <h3 class="modal-title">تعارض في البيانات</h3>
+    <p id="choiceModalMessage" style="margin-bottom: 25px; color: #555; line-height: 1.6;">
+      لديك شعور (إيموجي) مسجل لهذا اليوم. هل تريد حذفه واعتماد هذه اليومية بدلاً منه في التحليل؟
+    </p>
+    <div style="display: flex; gap: 10px; width: 100%;">
+      <button id="confirmChoiceBtn" class="pill-button pill-primary" style="flex: 1;">اعتماد اليومية</button>
+      <button id="cancelChoiceBtn" class="pill-button pill-ghost" style="flex: 1;">الاحتفاظ بالإيموجي</button>
+    </div>
+  </div>
+</div>
+  </body>
+</html>

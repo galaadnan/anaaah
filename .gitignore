@@ -1,0 +1,18 @@
+# Python virtual env
+venv/
+
+# macOS metadata
+.DS_Store
+__MACOSX/
+
+# Heavy AI model checkpoints (keep them LOCAL only)
+ai model/
+GP/ai model/models/
+GP/ai model/*.pt
+GP/ai model/*.bin
+GP/ai model/*.safetensors
+
+# Any other large binaries you don’t want on GitHub
+*.pt
+*.bin
+*.safetensors

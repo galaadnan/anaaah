@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>أناه | مساحة تهتم بمشاعرك</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Tajawal font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="page-welcome has-animated-bg">
+    <!-- BACKGROUND BLOBS (FAIRY GLASS) -->
+    <div class="bg-blobs">
+      <div class="blob mint"></div>
+      <div class="blob peach"></div>
+      <div class="blob purple"></div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="site-header">
+      <div class="shell">
+        <nav class="nav">
+          <!-- BRAND -->
+          <a href="index.html" class="brand">
+            <img src="images/anah.jpeg" alt="anah logo" class="brand-icon" />
+            <span>أناه</span>
+          </a>
+
+          <!-- NAV LINKS -->
+          <ul class="nav-links">
+            <li><a href="#about" class="anim-underline">عن أناه</a></li>
+
+            <li><a href="#features" class="anim-underline">المزايا</a></li>
+            <li><a href="#flow" class="anim-underline">كيف يعمل</a></li>
+            <li><a href="team.html" class="anim-underline">فريق أناه</a></li>
+          </ul>
+
+          <!-- AUTH -->
+          <a href="SignOrLogin.html" class="pill-button pill-ghost"
+            >تسجيل / دخول</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="shell">
+      <!-- DATE CHIP -->
+      <div class="date-display reveal anim-fade-up">
+        <span id="today-date"></span>
+      </div>
+
+      <!-- HERO SECTION -->
+      <section class="hero-grid" id="start">
+        <!-- RIGHT: COPY -->
+        <div class="hero-copy reveal">
+          <span class="hero-badge">كيف كان يومك حقًا؟</span>
+
+          <h1 class="hero-heading">
+            أناه تساعدك على
+            <span class="hero-highlight">فهم مشاعرك</span>
+            خطوة بخطوة.
+          </h1>
+
+          <p class="hero-subtext">
+            اكتب يومك ببساطة، ودع أناه يحلل إحساسك ويظهر لك رؤى يومية وأسبوعية
+            تساعدك على فهم نفسك أكثر، بهدوء وبدون أي حكم.
+          </p>
+
+          <div class="hero-main-actions">
+            <a href="SignOrLogin.html" class="pill-button pill-primary">
+              ابدأ تدوين يومك الآن
+              <span class="pill-icon">↗</span>
+            </a>
+
+           <button class="ghost-link" data-scroll="#flow">
+  شاهد كيف يعمل
+</button>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat">
+              <span class="stat-number">6</span>
+              <span class="stat-label">مشاعر أساسية تتابعها</span>
+            </div>
+            <div class="stat">
+              <span class="stat-number">30</span>
+              <span class="stat-label">ثانية لتسجيل يومك فقط</span>
+            </div>
+            <div class="stat">
+              <span class="stat-number">∞</span>
+              <span class="stat-label">مساحة آمنة للفضفضة</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- LEFT: MOOD ORB -->
+        <div class="hero-visual reveal">
+          <div class="mood-orb" id="mood-orb">
+            <div class="mood-orb-ring ring-1"></div>
+            <div class="mood-orb-ring ring-2"></div>
+
+            <!-- image instead of emoji -->
+            <img
+              id="mood-image"
+              class="mood-orb-image"
+              src="images/Ok.png"
+              alt="مزاج اليوم"
+            />
+
+            <div class="mood-label" id="mood-label">مزاج اليوم: هادئ</div>
+          </div>
+
+          <div class="mood-chips">
+            
+            <button
+              class="mood-chip is-active"
+              data-mood="calm"
+              data-label="مزاج اليوم: هادئ"
+              data-image="images/Ok.png"
+            >
+              هادئ
+            </button>
+            <button
+              class="mood-chip"
+              data-mood="happy"
+              data-label="مزاج اليوم: سعيد"
+              data-image="images/Habby.png"
+            >
+              سعيد
+            </button>
+            <button
+              class="mood-chip"
+              data-mood="stressed"
+              data-label="مزاج اليوم: متوتر"
+              data-image="images/worried.png"
+            >
+              متوتر
+            </button>
+            <button
+              class="mood-chip"
+              data-mood="sad"
+              data-label="مزاج اليوم: حزين"
+              data-image="images/Sad.png"
+            >
+              حزين
+            </button>
+            <button
+              class="mood-chip"
+              data-mood="angry"
+              data-label="مزاج اليوم: غاضب"
+              data-image="images/Angry.png"
+            >
+              غاضب
+            </button>
+            <button
+              class="mood-chip"
+              data-mood="tired"
+              data-label="مزاج اليوم: متعب"
+              data-image="images/Tired.png"
+            >
+              تعبان
+            </button>
+          </div>
+
+          <div class="mini-card-list">
+            <div class="mini-card">
+              <span class="mini-label">تحليل اليوم</span>
+              <p class="mini-text type-soft">
+                المشاعر الغالبة اليوم: رضا + هدوء.
+              </p>
+            </div>
+            <div class="mini-card">
+              <span class="mini-label">نمط الأسبوع</span>
+              <p class="mini-text type-soft">
+                الأيام الدراسية = مجهود أعلى، الإجازة = هدوء.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ABOUT SECTION -->
+      <section class="about-anah" id="about">
+        <div class="shell fade-up">
+          <h2 class="about-title">عن أناه</h2>
+          <div class="anim-separator"></div>
+          <p class="about-sub">
+            أناه هو مساحة شخصية هادئة تساعدك تلاحظ مشاعرك وتتعامل معها بوعي،
+            بعيدًا عن الضجيج والتقييم والضغط. هنا… أنت تكتب لنفسك فقط، والنظام
+            يعرض لك ملاحظات تساعدك تفهم ذاتك أكثر.
+          </p>
+
+          <div class="about-grid">
+            <div class="about-card anim-glow-card">
+              <h3>✦ لماذا أنشأنا أناه؟</h3>
+              <p>
+                لأننا نؤمن بأن المشاعر تحتاج مكان آمن يسمعها. كثير من الناس
+                يمرّون بأيام صعبة أو جميلة دون ما يلاحظون نمط مشاعرهم، وهنا يأتي
+                دور أناه ليلتقط هذه التفاصيل الصغيرة.
+              </p>
+            </div>
+
+            <div class="about-card anim-glow-card">
+              <h3>✦ كيف يساعدك؟</h3>
+              <p>
+                من خلال تحليل يومياتك، متابعة مزاجك، وعرض رؤية بسيطة عن أسبوعك
+                وشهرك، يساعدك أناه تكتشف: متى تكون بأفضل حالاتك؟ ومتى تحتاج راحة
+                أو دعم؟
+              </p>
+            </div>
+
+            <div class="about-card anim-glow-card">
+              <h3>✦ لمن صُمّم؟</h3>
+              <p>
+                لأي شخص يريد مساحة آمنة، بسيطة وجميلة، يسجّل شعوره دون حكم… فقط
+                بصدق وراحة.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- FEATURES -->
+      <section class="features" id="features">
+        <h2 class="reveal anim-fade-up">مزايا أناه</h2>
+        <div class="anim-separator"></div>
+
+        <div class="feature-grid">
+          <!-- 1) Comfortable Journaling – Notebook -->
+          <div class="feature anim-glow-card reveal">
+            <div class="feature-icon">
+              <img src="images/journal.gif" alt="دفتر التدوين" />
+            </div>
+            <h3>تدوين مريح</h3>
+            <p>واجهة كتابة لطيفة تشجعك تكتب دون ضغط.</p>
+          </div>
+
+          <!-- 2) Automatic Analysis – Head + Lens -->
+          <div class="feature anim-glow-card reveal">
+            <div class="feature-icon">
+              <img src="images/analyze.gif" alt="تحليل ذكي للمشاعر" />
+            </div>
+            <h3>تحليل تلقائي</h3>
+            <p>تحليل ذكي للنص يكشف مشاعرك الأساسية.</p>
+          </div>
+
+         <!-- 3) Mood Boards – Graph -->
+          <div class="feature anim-glow-card reveal">
+            <div class="feature-icon">
+              <img
+                src="images/analysis-graph.gif"
+                alt="لوحات مزاج ورسوم بيانية"
+              />
+            </div>
+            <h3>لوحات مزاج</h3>
+            <p>رسوم جميلة توضح مزاجك عبر الأيام.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section class="section section-alt" id="flow">
+        <div class="section-header reveal anim-fade-up">
+          <h2>كيف يعمل أناه؟</h2>
+          <p class="eyebrow">٣ خطوات بسيطة</p>
+        </div>
+
+        <ol class="flow-steps">
+          <li class="flow-step reveal">
+            <span class="step-number">1</span>
+            <div class="step-body">
+              <h3>اكتب عن يومك</h3>
+              <p>سطرين تكفي. فقط عبّر بحرّية.</p>
+            </div>
+          </li>
+
+          <li class="flow-step reveal">
+            <span class="step-number">2</span>
+            <div class="step-body">
+              <h3>دع التحليل يعمل</h3>
+              <p>النظام يقرأ نصك ويستخرج مشاعرك.</p>
+            </div>
+          </li>
+
+          <li class="flow-step reveal">
+            <span class="step-number">3</span>
+            <div class="step-body">
+              <h3>شاهد تغيّر مزاجك</h3>
+              <p>تابع مزاجك خلال الأسبوع أو الشهر.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="why-anah shell fade-up">
+        <h2>لماذا أناه؟</h2>
+        <div class="anim-separator"></div>
+        <p class="why-sub">
+          مساحة تُصمَّم بعناية لتجعل يومك أبسط، أوضح، وأهدأ.
+        </p>
+
+        <div class="why-grid">
+          <div class="why-card anim-glow-card">
+            <h3>✦ مصمّم ليكون لطيفًا</h3>
+            <p>ألوان هادئة، عناصر بسيطة، وخبرة مستخدم تهدّئ ولا تربك.</p>
+          </div>
+
+          <div class="why-card anim-glow-card">
+            <h3>✦ بدون أي حكم</h3>
+            <p>أناه يفهم مشاعرك، لكنه لا يقيّمك. فقط يعرض لك الصورة بصدق.</p>
+          </div>
+
+          <div class="why-card anim-glow-card">
+            <h3>✦ يسهّل عليك ملاحظة نفسك</h3>
+            <p>
+              تتبّع أسبوعي وشهري يساعدك تشوف التغيّرات الصغيرة اللي تصنع فرق.
+            </p>
+          </div>
+
+          <div class="why-card anim-glow-card">
+            <h3>✦ 30 ثانية يوميًا فقط</h3>
+            <p>
+              لا تحتاج وقت طويل. سطرين يوميًا تكفي لبداية رحلة جميلة مع ذاتك.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="shell footer-row">
+        <div class="footer-left">
+          <a href="index.html" class="brand">
+            <img src="images/anah.jpeg" alt="anah logo" class="brand-icon" />
+            <span>أناه</span>
+          </a>
+          <span class="footer-copy"> © <span id="year"></span> أناه </span>
+          <span class="footer-tagline"> مساحة صغيرة تهتم بمشاعرك بلطف. </span>
+        </div>
+
+        <nav class="footer-links">
+          <a href="#about">عن أناه</a>
+          <span class="footer-dot">·</span>
+          <a href="#features">المزايا</a>
+          <span class="footer-dot">·</span>
+           <a href="#flow">كيف يعمل</a>
+          <span class="footer-dot">·</span>
+          <a href="team.html">فريق أناه</a>
+        </nav>
+      </div>
+    </footer>
+    <button id="backTop" class="back-top">↑</button>
+    <script src="utils.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

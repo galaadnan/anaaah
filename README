@@ -1,0 +1,79 @@
+Anah – Arabic Emotion-Aware Journaling Web App
+
+A personal mental-wellbeing journal that understands your emotions.
+
+Anah (أناه) is a full-stack web application designed to help users express, track, and analyze their emotions through a daily journaling experience.
+The system combines traditional NLP (lexicon-based analysis) with a fine-tuned Arabic transformer model (MARBERTv2){future work} to detect emotional patterns from user-written text.
+
+⸻
+
+Features
+
+Smart Arabic Journaling
+	•	Write daily journal entries in Arabic 
+	•	Automatic detection of emotional cues from text
+	•	keyword-based emotion explanation
+	•	Word count, star rating, and visualization of writing streaks
+
+Emoji Mood Tracking
+	•	Users select their mood each day
+	•	Animated UI + visual mood indicator
+	•	Mood contributes to emotion analysis
+
+Emotion Analysis Dashboard
+	•	Weekly, monthly and up to 90 days emotion distribution chart
+	•	Top dominant emotions
+	•	History of daily emotional states
+
+Daily Checklist
+	•	Create, edit, delete daily tasks
+	•	Progress ring visualization
+	•	Emoji-based task mood
+	•	Validations using modal alerts
+
+Built-In Chatbot
+	•	Simple supportive Arabic chatbot
+	•	Responds to emotional cues (حزين، قلق، تعبان…)
+
+Authentication
+	•	Sign up, login, and password reset
+	•	“Remember me” feature
+	•	All stored in browser localStorage for local testing
+
+⸻
+
+Emotion Detection Approaches
+
+Anah uses a dual emotion detection pipeline:
+
+1) Rule-Based Lexicon Approach
+	•	Custom Arabic emotion lexicon (wne_lexicon_en.json)
+	•	Strips diacritics, normalizes words, detects emotion-trigger words
+	•	Uses fallback rules for common emotional expressions
+
+2) Machine Learning Model (Fine-Tuned MARBERTv2){future work}
+	•	MARBERTv2 trained on 6 emotion classes:
+Calm, Happy, Sad, Angry, Stressed, Tired
+	•	Dataset composed of:
+	•	Synthetic Calm & Tired samples generated with LLM prompts
+	•	Achieved 91.7% accuracy and 0.92 macro F1
+
+⸻
+
+Tech Stack
+
+Frontend
+	•	HTML, CSS, JavaScript
+	•	Animations + UI components
+	•	Modal system for validations
+	•	SVG progress visualization
+
+Backend (Processing Layer)
+	•	Pure JS (browser-based)
+	•	Emotion detection pipeline
+	•	Lexicon loader 
+
+ML Training
+	•	Python, PyTorch, Transformers
+	•	MARBERTv2 fine-tuning
+	•	Confusion matrix 

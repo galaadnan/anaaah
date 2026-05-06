@@ -1,0 +1,1236 @@
+/* =========================================================
+   Anah
+   ========================================================= */
+
+/* ---------- Root variables ---------- */
+:root {
+  --mint: #86e3ce;
+  --green: #d0e6a5;
+  --yellow: #ffdd94;
+  --peach: #fa897b;
+  --purple: #ccabd8;
+
+  --headText: linear-gradient(180deg, #86e3ce 0%, #ccabd8 100%);
+  --text-main: #1a1d2e;
+  --text-soft: #4b4f63;
+
+  --radius-xxl: 30px;
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 14px 40px rgba(0, 0, 0, 0.12);
+  --shadow-strong: 0 26px 70px rgba(0, 0, 0, 0.22);
+
+  --t-fast: 120ms ease-out;
+  --t-med: 220ms ease-out;
+}
+/* =========================================================
+   RESET + BASE
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+#about,
+#features,
+#flow,
+.why-anah {
+  scroll-margin-top: 90px;  
+}
+
+body {
+  margin: 0;
+  font-family: "Tajawal", "Cairo", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  direction: rtl;
+  text-align: right;
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+/* pastel animated background */
+body.has-animated-bg {
+  background: radial-gradient(
+      circle at 0% 0%,
+      rgba(204, 171, 216, 0.35),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(134, 227, 206, 0.28),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      rgba(250, 137, 123, 0.26),
+      transparent 55%
+    ),
+    linear-gradient(180deg, #fff7ed 0%, #fff1e0 100%);
+}
+
+body.has-animated-bg::before {
+  content: "";
+  position: fixed;
+  inset: -35%;
+  z-index: -2;
+  pointer-events: none;
+  background: radial-gradient(
+      circle at 10% 0%,
+      rgba(255, 255, 255, 0.7),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 90% 100%,
+      rgba(255, 255, 255, 0.85),
+      transparent 60%
+    );
+  mix-blend-mode: soft-light;
+  opacity: 0.8;
+  background-size: 160% 160%;
+  animation: bg-pan 26s ease-in-out infinite alternate;
+}
+
+/* background blobs */
+.bg-blobs {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+}
+
+.bg-blobs .blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.28;
+  will-change: transform;
+  animation: blob-float 28s ease-in-out infinite alternate;
+}
+
+.bg-blobs .blob.mint {
+  background: var(--mint);
+  width: 46vmax;
+  height: 46vmax;
+  top: -12vmax;
+  left: -6vmax;
+}
+
+.bg-blobs .blob.peach {
+  background: var(--peach);
+  width: 40vmax;
+  height: 40vmax;
+  bottom: -10vmax;
+  right: -8vmax;
+  animation-duration: 32s;
+}
+
+.bg-blobs .blob.purple {
+  background: var(--purple);
+  width: 32vmax;
+  height: 32vmax;
+  bottom: -8vmax;
+  left: 20%;
+  animation-duration: 24s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.has-animated-bg::before,
+  .bg-blobs .blob {
+    animation: none;
+  }
+}
+
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+.shell,
+.container {
+  width: min(1120px, 100% - 32px);
+  margin-inline: auto;
+}
+
+h1, h2, h3, h4, h5 { margin: 0; font-weight: 800; }
+p { margin: 0; line-height: 1.8; color: var(--text-soft); }
+
+/* =========================================================
+   HEADER / NAV
+   ========================================================= */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+    -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  background: linear-gradient(to bottom, rgba(255, 247, 237, 0.96), rgba(255, 247, 237, 0.72), transparent);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding-block: 10px; }
+.brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 900; text-decoration: none; color: var(--text-main); font-size: 19px; }
+.brand-icon { width: 34px; height: 34px; object-fit: contain; border-radius: 50%; margin-left: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+.nav-links { list-style: none; display: flex; align-items: center; gap: 14px; margin: 0; padding: 0; font-size: 0.94rem; }
+.nav-links a { position: relative; text-decoration: none; color: var(--text-main); opacity: 0.78; padding-bottom: 3px; }
+.nav-links a:hover, .nav-links a.active { opacity: 1; }
+.anim-underline::after, .nav-links a::after { content: ""; position: absolute; inset-inline: 0; bottom: -2px; height: 2px; border-radius: var(--radius-pill); transform: scaleX(0); transform-origin: center; background: linear-gradient(90deg, var(--mint), var(--purple), var(--peach)); transition: transform var(--t-fast); }
+.anim-underline:hover::after, .nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+.pill-button, .ghost-link, .pill-primary, .pill-ghost { border-radius: var(--radius-pill); border: none; font-family: inherit; font-size: 0.94rem; font-weight: 800; padding: 10px 22px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; cursor: pointer; transition: transform var(--t-fast), box-shadow var(--t-fast), background var(--t-med), color var(--t-med); }
+.pill-primary, .ghost-link { background: linear-gradient(120deg, var(--mint), var(--purple)); color: #000; box-shadow: 0 14px 34px rgba(204, 171, 216, 0.6); }
+.pill-primary:hover, .ghost-link:hover { transform: translateY(-2px); box-shadow: var(--shadow-strong); }
+.pill-ghost { background: rgba(255, 255, 255, 0.9); color: var(--text-main); border: 1px solid rgba(204, 171, 216, 0.5); box-shadow: var(--shadow-soft); }
+.pill-ghost:hover { transform: translateY(-2px); }
+
+/* =========================================================
+   PAGE WRAPPERS
+   ========================================================= */
+.page-welcome, .page-auth { min-height: 100vh; display: flex; flex-direction: column; }
+main { padding-block: 26px 40px; }
+
+/* date chip */
+.date-display { margin: 4px auto 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 5px 12px; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(204, 171, 216, 0.4); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08); font-size: 0.84rem; }
+
+/* ================= HERO IMPROVEMENTS ================= */
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr); gap: 40px; align-items: center; padding-block: 32px 40px; }
+.hero-copy { max-width: 480px; justify-self: flex-end; }
+.hero-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(204, 171, 216, 0.55); font-size: 0.78rem; margin-bottom: 10px; }
+.hero-heading { font-size: clamp(28px, 4vw, 36px); line-height: 1.25; margin-bottom: 10px; color: #111111; }
+.hero-highlight { background: linear-gradient(120deg, var(--mint), var(--purple), var(--peach)); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap; line-height: 1.6; padding-top: 10px; }
+.hero-subtext { font-size: 0.95rem; opacity: 0.9; margin-bottom: 18px; max-width: 36ch; }
+.hero-main-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
+.hero-stats { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.82rem; }
+.stat { padding: 8px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(204, 171, 216, 0.45); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08); }
+.stat-number { font-weight: 900; margin-left: 4px; }
+
+/* ================= MOOD ORB WITH IMAGE ================= */
+.hero-visual { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.mood-orb { position: relative; width: min(260px, 70vw); aspect-ratio: 1/1; border-radius: 50%; background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.6), transparent 60%), radial-gradient(circle at 0% 100%, rgba(134, 227, 206, 0.7), transparent 55%), radial-gradient(circle at 100% 0%, rgba(204, 171, 216, 0.7), transparent 55%); box-shadow: 0 26px 60px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; overflow: visible; }
+.mood-orb-ring { position: absolute; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.65); opacity: 0.6; }
+.mood-orb-ring.ring-1 { width: 78%; height: 78%; }
+.mood-orb-ring.ring-2 { width: 92%; height: 92%; opacity: 0.35; }
+.mood-orb-image { width: 70%; aspect-ratio: 1 / 1; border-radius: 50%; object-fit: contain; display: block; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); z-index: 1; transform: translateY(4px); }
+.mood-label { position: absolute; bottom: 12px; inset-inline: 0; text-align: center; font-size: 0.85rem; color: rgba(0, 0, 0, 0.85); }
+.mood-chips { margin-top: 14px; padding: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(204, 171, 216, 0.5); display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.mood-chip { border-radius: 999px; border: none; padding: 5px 12px; background: transparent; font-size: 0.84rem; cursor: pointer; color: #555; transition: background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease; }
+.mood-chip:hover { background: rgba(240, 240, 255, 0.9); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12); }
+.mood-chip.is-active { background: linear-gradient(120deg, var(--mint), var(--purple)); color: #000; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18); }
+
+.mini-card-list { margin-top: 16px; width: 100%; max-width: 360px; }
+
+/* features */
+.features { padding-block: 50px 60px; }
+.features h2 { text-align: center; margin-bottom: 6px; font-size: 2rem; background: linear-gradient(180deg, var(--mint), var(--purple)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.anim-separator { width: 90px; height: 4px; border-radius: 999px; margin: 0 auto 18px; background: linear-gradient(90deg, var(--mint), var(--purple), var(--peach)); box-shadow: 0 0 12px rgba(204, 171, 216, 0.45), 0 0 20px rgba(134, 227, 206, 0.4); }
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-top: 18px; }
+.feature { border-radius: var(--radius-lg); padding: 18px 16px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(204, 171, 216, 0.4); box-shadow: var(--shadow-soft); position: relative; overflow: hidden; transform-origin: center; transition: transform var(--t-med), box-shadow var(--t-med); }
+.feature:hover { transform: translateY(-4px); box-shadow: var(--shadow-strong); }
+.feature-icon { width: 64px; height: 64px; border-radius: 22px; background: radial-gradient(circle at 0% 0%, #b6f3e5, #f0d6ff 60%, #ffe8c7); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.6); }
+.feature-icon img { width: 55px; height: 55px; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08)); }
+
+/* FLOW SECTION WRAPPER */
+.section { padding-block: 26px 32px; }
+.section-alt { background: rgba(255, 255, 255, 0.65); border-radius: 26px; padding: 20px 18px 26px; margin-block: 8px 24px; border: 1px solid rgba(204, 171, 216, 0.45); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.10), 0 0 60px rgba(204, 171, 216, 0.25); -webkit-backdrop-filter: blur(16px) saturate(170%); backdrop-filter: blur(16px) saturate(170%); }
+.flow-steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }
+.flow-step { position: relative; display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: flex-start; padding: 14px 16px; border-radius: 20px; background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), rgba(248, 244, 255, 0.95)); border: 1px solid rgba(204, 171, 216, 0.45); box-shadow: 0 10px 26px rgba(0, 0, 0, 0.09), 0 0 40px rgba(204, 171, 216, 0.22); -webkit-backdrop-filter: blur(12px) saturate(180%); backdrop-filter: blur(12px) saturate(180%); transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease; }
+.flow-step::before { content: ""; position: absolute; inset-inline: 16px; top: 0; height: 3px; border-radius: 999px; background: linear-gradient(90deg, var(--mint), var(--purple), var(--peach)); opacity: 0; transition: opacity 0.25s ease; }
+.flow-step:hover { transform: translateY(-4px); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.14), 0 0 55px rgba(134, 227, 206, 0.35); border-color: rgba(134, 227, 206, 0.8); background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.98), rgba(255, 250, 255, 0.98)); }
+.flow-step:hover::before { opacity: 0.9; }
+.step-number { width: 38px; height: 38px; border-radius: 999px; display: grid; place-items: center; background: conic-gradient(from 210deg, var(--mint), var(--purple), var(--peach), var(--mint)); color: #fff; font-size: 0.92rem; font-weight: 800; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18), 0 0 0 2px rgba(255, 255, 255, 0.7); flex-shrink: 0; }
+.step-number::after { content: ""; width: 70%; height: 70%; border-radius: inherit; background: rgba(255, 255, 255, 0.22); }
+.step-body h3 { margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--headText); }
+.step-body p { margin: 4px 0 0; font-size: 0.9rem; line-height: 1.7; color: rgba(0, 0, 0, 0.78); }
+
+.why-anah h2 { font-size: 1.9rem; margin-bottom: 6px; padding-top:10px; padding-bottom:10px; background: linear-gradient(180deg, var(--mint), var(--purple)); -webkit-background-clip: text; color: transparent; }
+.why-sub { opacity: 0.75; margin-bottom: 26px; font-size: 1rem; }
+.why-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.why-card { padding: 20px 18px; border-radius: 20px; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(204, 171, 216, 0.4); box-shadow: 0 14px 38px rgba(0, 0, 0, 0.06); transition: 0.25s ease; }
+.why-card:hover { transform: translateY(-4px); box-shadow: 0 20px 46px rgba(0, 0, 0, 0.1); }
+.why-card h3 { margin-bottom: 8px; font-size: 1.15rem; font-weight: 900; line-height: 1.3; background: linear-gradient(120deg, var(--mint), var(--purple), var(--peach)); -webkit-background-clip: text; color: transparent; letter-spacing: -0.3px; text-shadow: 0 0 18px rgba(255, 255, 255, 0.45); }
+
+/* ABOUT ANAH SECTION */
+.about-anah { padding-block: 60px 70px; text-align: center; }
+.about-title { font-size: 2rem; margin-bottom: 10px; background: linear-gradient(180deg, var(--mint), var(--purple)); -webkit-background-clip: text; color: transparent; font-weight: 900; }
+.about-sub { font-size: 1.05rem; opacity: 0.75; max-width: 600px; margin: 0 auto 30px; line-height: 1.9; }
+.about-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 20px; }
+.about-card { padding: 20px 18px; border-radius: 20px; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(204, 171, 216, 0.4); box-shadow: 0 14px 38px rgba(0, 0, 0, 0.06); text-align: right; transition: 0.25s ease; }
+.about-card:hover { transform: translateY(-4px); box-shadow: 0 20px 46px rgba(0, 0, 0, 0.1); }
+.about-card h3 { margin-bottom: 8px; font-size: 1.15rem; font-weight: 900; background: linear-gradient(120deg, var(--mint), var(--purple), var(--peach)); -webkit-background-clip: text; color: transparent; }
+.about-card p { font-size: 0.95rem; opacity: 0.85; line-height: 1.8; }
+
+/* =========================================
+   DYNAMIC MOOD ORB COLORS
+   ========================================= */
+.mood-orb.angry { background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.4), transparent 60%), radial-gradient(circle at 0% 100%, rgba(255, 107, 107, 0.8), transparent 60%), radial-gradient(circle at 100% 0%, rgba(238, 82, 83, 0.7), transparent 60%) !important; box-shadow: 0 26px 60px rgba(238, 82, 83, 0.35); }
+.mood-orb.angry .mood-orb-ring { border-color: rgba(255, 107, 107, 0.4); background: rgba(255, 0, 0, 0.03); }
+.mood-orb.sad { background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.4), transparent 60%), radial-gradient(circle at 0% 100%, rgba(84, 160, 255, 0.8), transparent 60%), radial-gradient(circle at 100% 0%, rgba(46, 134, 222, 0.7), transparent 60%) !important; box-shadow: 0 26px 60px rgba(46, 134, 222, 0.35); }
+.mood-orb.sad .mood-orb-ring { border-color: rgba(84, 160, 255, 0.4); background: rgba(0, 0, 255, 0.03); }
+.mood-orb.tired { background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.4), transparent 60%), radial-gradient(circle at 0% 100%, rgba(254, 202, 87, 0.8), transparent 60%), radial-gradient(circle at 100% 0%, rgba(255, 159, 67, 0.7), transparent 60%) !important; box-shadow: 0 26px 60px rgba(254, 202, 87, 0.35); }
+.mood-orb.tired .mood-orb-ring { border-color: rgba(254, 202, 87, 0.5); background: rgba(255, 255, 0, 0.02); }
+.mood-orb.stressed { background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.4), transparent 60%), radial-gradient(circle at 0% 100%, rgba(204, 171, 216, 0.8), transparent 60%), radial-gradient(circle at 100% 0%, rgba(156, 136, 255, 0.7), transparent 60%) !important; box-shadow: 0 26px 60px rgba(156, 136, 255, 0.3); }
+.mood-orb.stressed .mood-orb-ring { border-color: rgba(204, 171, 216, 0.5); }
+.mood-orb.happy { background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.5), transparent 60%), radial-gradient(circle at 0% 100%, rgba(29, 209, 161, 0.7), transparent 60%), radial-gradient(circle at 100% 0%, rgba(85, 239, 196, 0.7), transparent 60%) !important; box-shadow: 0 26px 60px rgba(29, 209, 161, 0.3); }
+.mood-orb.happy .mood-orb-ring { border-color: rgba(85, 239, 196, 0.5); }
+
+.back-top { position: fixed; bottom: 26px; left: 26px; background: linear-gradient(120deg, var(--mint), var(--purple)); color: #fff; border: none; padding: 12px 15px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; opacity: 0; pointer-events: none; transition: 0.3s; }
+.back-top.show { opacity: 1; pointer-events: auto; }
+
+/* =========================================================
+   AUTH PAGE – FAIRY GLASS GLOW 
+   ========================================================= */
+.auth-split { display: grid; grid-template-columns: 1fr 0.85fr; gap: 32px; min-height: calc(100vh - 140px); margin-top: 28px; align-items: center; }
+.auth-image-panel { border-radius: 26px; overflow: hidden; position: relative; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18), 0 0 80px rgba(204, 171, 216, 0.25), 0 0 110px rgba(134, 227, 206, 0.22); transform: scale(0.96); transition: transform 0.5s ease, box-shadow 0.5s ease; }
+.auth-image-panel:hover { transform: scale(0.985); box-shadow: 0 26px 80px rgba(0, 0, 0, 0.22), 0 0 120px rgba(204, 171, 216, 0.3), 0 0 140px rgba(134, 227, 206, 0.28); }
+.auth-image-panel .image-inner { height: 100%; position: relative; overflow: hidden; }
+.auth-bg-video, .auth-image-panel img { width: 100%; height: 100%; object-fit: cover; }
+.image-overlay-text { position: absolute; bottom: 26px; right: 26px; color: #ffffff; text-shadow: 0 8px 40px rgba(0, 0, 0, 0.65); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); padding: 6px 14px; border-radius: 14px; background: rgba(0, 0, 0, 0.25); }
+.image-overlay-text h3 { font-size: 1.35rem; margin-bottom: 2px; }
+.image-overlay-text p { font-size: 0.9rem; opacity: 0.9; }
+
+.auth-panel-wrapper { display: flex; align-items: center; justify-content: center; padding-inline: 16px; }
+.dark-glass-card { width: 100%; max-width: 430px; padding: 34px 28px; border-radius: 28px; background: rgba(255, 255, 255, 0.55); -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%); border: 1px solid rgba(255, 255, 255, 0.7); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 0 80px rgba(204, 171, 216, 0.55), 0 0 120px rgba(134, 227, 206, 0.45); position: relative; overflow: hidden; }
+.dark-glass-card::before { content: ""; position: absolute; inset: -40%; background: radial-gradient(circle at 10% 0%, rgba(134, 227, 206, 0.25), transparent 60%), radial-gradient(circle at 90% 100%, rgba(204, 171, 216, 0.3), transparent 65%), radial-gradient(circle at 50% 100%, rgba(250, 137, 123, 0.22), transparent 70%); mix-blend-mode: soft-light; animation: cardGlow 20s ease-in-out infinite alternate; z-index: -1; }
+
+.auth-tabs { display: flex; gap: 10px; margin-bottom: 24px; }
+.auth-tab { flex: 1; padding: 10px 14px; border-radius: 16px; border: none; background: rgba(255, 255, 255, 0.4); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: rgba(0, 0, 0, 0.65); cursor: pointer; font-size: 0.92rem; transition: 0.25s ease; }
+.auth-tab:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); }
+.auth-tab.active { background: linear-gradient(120deg, var(--mint), var(--purple), var(--peach)); background-size: 200% 100%; color: #000; font-weight: 800; animation: pastelFlow 8s ease infinite alternate; }
+
+.auth-panel { display: none; animation: fadeSlide 0.5s ease; }
+.auth-panel.active { display: block; }
+.auth-title { font-size: 1.55rem; background: linear-gradient(120deg, var(--mint), var(--purple)); -webkit-background-clip: text; color: transparent; margin-bottom: 10px; }
+.auth-sub { font-size: 0.9rem; opacity: 0.75; margin-bottom: 20px; }
+.field { margin-bottom: 14px; }
+.field label { font-size: 0.86rem; color: rgba(0, 0, 0, 0.75); margin-bottom: 5px; display: block; }
+.input { position: relative; }
+.input input { width: 100%; padding: 12px 46px 12px 14px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.6); background: rgba(255, 255, 255, 0.45); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); font-size: 0.92rem; color: #1a1a1a; transition: 0.25s ease; }
+.input input::placeholder { color: rgba(0, 0, 0, 0.35); }
+.input input:focus { outline: none; border-color: var(--mint); background: rgba(255, 255, 255, 0.75); box-shadow: 0 0 12px rgba(134, 227, 206, 0.45); }
+
+.peek { position: absolute; top: 50%; right: 14px; transform: translateY(-50%); background: none; border: none; padding: 0; cursor: pointer; opacity: 0.6; transition: opacity 0.2s ease, transform 0.2s ease; z-index: 10; }
+.peek-icon { width: 20px; height: 20px; object-fit: contain; display: block; pointer-events: none; }
+.peek:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
+.row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+.tick { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; font-size: 15px; color: #000000; opacity: 0.9; transition: opacity 0.2s ease; }
+.tick:hover { opacity: 1; }
+.tick input[type="checkbox"] { appearance: none; width: 20px; height: 20px; border: 2px solid rgba(255, 255, 255, 0.6); border-radius: 6px; cursor: pointer; position: relative; background: transparent; transition: all 0.25s ease; }
+.tick input[type="checkbox"]:checked { background: linear-gradient(135deg, #6ae0c6, #4bb8ac); border-color: transparent; box-shadow: 0 0 8px rgba(93, 235, 197, 0.8); }
+.tick input[type="checkbox"]:checked::after { content: "✔"; color: #fff; font-size: 14px; position: absolute; top: -2px; left: 3px; }
+.link { font-size: 0.82rem; text-decoration: underline; color: #444; }
+
+.password-strength { margin-top: 6px; font-size: 0.8rem; }
+.password-strength .pw-label { display: block; margin-bottom: 4px; color: rgba(0, 0, 0, 0.7); }
+.password-strength .pw-bar { position: relative; width: 100%; height: 6px; border-radius: 999px; background: rgba(0, 0, 0, 0.06); overflow: hidden; }
+.password-strength .pw-bar-fill { position: absolute; inset: 0; width: 0%; border-radius: inherit; transition: width 0.25s ease, background-color 0.25s ease; }
+.password-strength.is-weak .pw-bar-fill { width: 33%; background: #ff4b5c; }
+.password-strength.is-medium .pw-bar-fill { width: 66%; background: #ffb347; }
+.password-strength.is-strong .pw-bar-fill { width: 100%; background: #22c55e; }
+
+.auth-btn-main { width: 100%; padding: 12px; margin-top: 12px; border-radius: 14px; border: none; background: linear-gradient(120deg, var(--mint), var(--purple)); color: #000; font-weight: 800; cursor: pointer; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.auth-btn-main:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25); }
+.auth-switch { margin-top: 12px; text-align: center; font-size: 0.86rem; color: #333; }
+.auth-switch .swap-btn { background: none; border: none; color: var(--purple); font-weight: 800; cursor: pointer; text-decoration: underline; }
+
+/* =========================================================
+   HOME PAGE – GLASSY DASHBOARD & GRID
+   ========================================================= */
+.page-home { min-height: 100vh; display: flex; flex-direction: column; }
+.home-main { padding-block: 26px 40px; }
+
+.home-container {
+  width: min(1120px, 100%); margin-inline: auto; margin-top: 22px; padding: 26px 26px 32px; border-radius: 32px;
+  background: rgba(255, 255, 255, 0.75); border: 1px solid rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(32px) saturate(180%); backdrop-filter: blur(32px) saturate(180%);
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.15), 0 0 120px rgba(204, 171, 216, 0.35), 0 0 160px rgba(134, 227, 206, 0.3), inset 0 0 18px rgba(255, 255, 255, 0.35);
+  position: relative; overflow: hidden; transform-style: preserve-3d;
+}
+
+.home-container::before {
+  content: ""; position: absolute; inset: -45%; z-index: -1; opacity: 0.8; mix-blend-mode: soft-light;
+  background: radial-gradient(circle at 15% 0%, rgba(134, 227, 206, 0.4), transparent 60%), radial-gradient(circle at 85% 100%, rgba(204, 171, 216, 0.38), transparent 65%), radial-gradient(circle at 50% 100%, rgba(250, 137, 123, 0.3), transparent 70%);
+  animation: fairyHalo 28s ease-in-out infinite alternate; filter: blur(12px);
+}
+.home-container::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0.5;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 40%, rgba(255, 255, 255, 0.12) 100%);
+  mix-blend-mode: soft-light; animation: shimmerFlow 18s ease-in-out infinite alternate;
+}
+.home-container > * { position: relative; z-index: 30; }
+
+.home-header-top { display: flex; justify-content: space-between; gap: 20px; align-items: flex-end; margin-bottom: 18px; }
+.home-heading { font-size: 1.6rem; margin-bottom: 6px; }
+.home-lead { font-size: 0.94rem; max-width: 40ch; }
+.home-header-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.home-meta-date { padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(204, 171, 216, 0.45); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08); font-size: 0.86rem; }
+.home-meta-stats { display: flex; gap: 8px; }
+.meta-pill { padding: 5px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(204, 171, 216, 0.45); font-size: 0.82rem; display: flex; align-items: center; gap: 6px; }
+.meta-pill strong { font-size: 0.95rem; }
+/* =========================================
+   تنسيق شريط المزاج في الأعلى (زي الكارد القديم)
+   ========================================= */
+.mood-card-top {
+  width: 100% !important;
+  margin-bottom: 30px !important;
+  background: rgba(255, 255, 255, 0.96) !important; /* رجعنا الخلفية البيضاء */
+  border-radius: 22px !important;
+  padding: 24px !important; /* كبرنا المساحة الداخلية عشان تطلع أرتب */
+  border: 1px solid rgba(204, 171, 216, 0.5) !important; /* رجعنا الإطار */
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08) !important; /* رجعنا الظل */
+}
+
+.mood-buttons-centered {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 15px !important;
+  flex-wrap: wrap !important;
+}
+
+/* =========================================
+   تنسيق ظهور اسم الشعور فوق الإيموجي عند الضغط/المرور
+   ========================================= */
+.mood-buttons-centered .mood {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  width: 110px;
+  height: 110px;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  opacity: 0.4;
+  position: relative; /* ضروري عشان الاسم يطلع فوقه بالضبط */
+}
+
+.mood-buttons-centered .mood.is-active, 
+.mood-buttons-centered .mood:hover {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+/* المربع الصغير اللي يطلع فيه اسم الشعور */
+.mood-buttons-centered .mood::after {
+  content: attr(data-mood);
+  position: absolute;
+  top: -15px; /* رفعناه شوي عشان ما يغطي على الإيموجي */
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  background: var(--peach); /* لون الخلفية، تقدرين تغيرينه */
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* إظهار اسم الشعور عند المرور (Hover) أو لما يكون نشط (Active) */
+.mood-buttons-centered .mood:hover::after,
+.mood-buttons-centered .mood.is-active::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* التأثيرات الملونة لكل إيموجي (اختياري) */
+.mood-buttons-centered .mood.is-active {
+  border-bottom: 3px solid var(--mint);
+  padding-bottom: 5px;
+  transform: scale(1.15);
+}
+/* =========================================
+   الترتيب المثالي (يمين ويسار داخل المربع بدون ما يطلع برا)
+   ========================================= */
+.home-grid-perfect {
+  display: grid !important;
+  grid-template-columns: 340px 1fr !important; /* السايدبار النحيف يمين 340، المهام العريضة يسار 1fr */
+  gap: 26px !important;
+  align-items: flex-start !important;
+  width: 100% !important;
+}
+
+.home-right {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+  width: 100% !important;
+  min-width: 0 !important; /* يمنع التمدد الخاطئ */
+}
+
+.home-left {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+  width: 100% !important;
+  min-width: 0 !important; /* يمنع التمدد الخاطئ */
+}
+/* =========================================
+   عشان ما تخرب في اللابتوب وتصير عمود واحد
+   ========================================= */
+@media (max-width: 900px) {
+  .home-grid {
+    /* ما نخليهم عمود واحد إلا إذا الشاشة فعلاً صغيرة (زي الجوال) */
+    grid-template-columns: 1fr !important;
+  }
+  .home-right, .home-left {
+    grid-column: 1 !important;
+  }
+}
+/* Generic Card */
+.home-card { border-radius: 22px; padding: 16px 16px 18px; background: rgba(255, 255, 255, 0.96); border: 1px solid rgba(204, 171, 216, 0.5); box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08); }
+
+/* =========================================================
+   HOME: MOOD & PROGRESS
+   ========================================================= */
+.mood-card { margin-bottom: 14px; }
+.mood-card h2 { font-size: 1.4rem; text-align: center; margin-bottom: 8px; }
+.mood-hint { text-align: center; margin-bottom: 24px; font-size: 0.95rem; opacity: 0.8; }
+.mood-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+.mood-buttons .mood { background: transparent !important; border: none !important; box-shadow: none !important; width: 110px; height: 110px; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s ease, filter 0.2s ease; opacity: 0.4; position: relative; }
+.mood-buttons .mood.is-active, .mood-buttons .mood:hover { transform: scale(1.1); opacity: 1; }
+.mood-buttons .mood.is-active { border-bottom: 3px solid var(--mint); padding-bottom: 5px; filter: drop-shadow(0 0 8px rgba(134, 227, 206, 0.6)); transform: scale(1.15); }
+.mood-buttons .mood img { width: 100%; height: 100%; object-fit: contain; transition: filter 0.2s ease, transform 0.2s ease; }
+.mood-buttons .mood.veryhappy:hover img, .mood-buttons .mood.veryhappy.is-active img { filter: drop-shadow(0 0 2px #86e3ce) drop-shadow(0 0 10px #86e3ce); }
+.mood-buttons .mood.angry:hover img, .mood-buttons .mood.angry.is-active img { filter: drop-shadow(0 0 2px #fa897b) drop-shadow(0 0 10px #fa897b); }
+.mood-buttons .mood.worried:hover img, .mood-buttons .mood.worried.is-active img { filter: drop-shadow(0 0 2px #ccabd8) drop-shadow(0 0 10px #ccabd8); }
+.mood-buttons .mood.tired:hover img, .mood-buttons .mood.tired.is-active img { filter: drop-shadow(0 0 2px #ffdd94) drop-shadow(0 0 10px #ffdd94); }
+.mood-buttons .mood.ok:hover img, .mood-buttons .mood.ok.is-active img { filter: drop-shadow(0 0 2px #ffbcbc) drop-shadow(0 0 10px #ffbcbc); }
+.mood-buttons .mood.sad:hover img, .mood-buttons .mood.sad.is-active img { filter: drop-shadow(0 0 2px #a2d2ff) drop-shadow(0 0 10px #a2d2ff); }
+
+.mood::after { content: attr(data-mood); position: absolute; top: -10px; left: 50%; transform: translateX(-50%) translateY(5px); background: var(--peach); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 14px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease; -webkit-backdrop-filter:blur(6px); backdrop-filter: blur(6px); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+.mood:hover::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Progress Card */
+.progress-card h2 { font-size: 1.05rem; margin-bottom: 4px; }
+.progress-sub { font-size: 0.85rem; color: rgba(0, 0, 0, 0.7); }
+.progress-body { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.progress-ring-container { position: relative; width: 160px; height: 160px; display: grid; place-items: center; }
+.progress-ring { transform: rotate(-90deg); }
+.progress-ring-bg { fill: none; stroke: rgba(230, 220, 250, 0.8); stroke-width: 10; }
+.progress-ring-fill { fill: none; stroke: url(#gradientRing); stroke-width: 10; stroke-linecap: round; stroke-dasharray: 364; stroke-dashoffset: 364; transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease; }
+.progress-center { position: absolute; text-align: center; }
+.progress-percent { font-weight: 800; font-size: 1.4rem; }
+.progress-label { display: block; font-size: 0.8rem; color: rgba(0, 0, 0, 0.7); margin-top: 2px; }
+.progress-side { flex: 1; font-size: 0.86rem; }
+.progress-note { margin-bottom: 10px; }
+
+/* =========================================================
+   HOME: TASKS SECTION (النظيفة مع الإيموجيات كشريط علوي)
+   ========================================================= */
+.tasks-card { position: relative; overflow: hidden; }
+.tasks-card::before { content: ""; position: absolute; inset-inline: 14px; top: 0; height: 4px; border-radius: 999px; background: linear-gradient(90deg, var(--mint), var(--purple), var(--peach)); opacity: 0.75; }
+.tasks-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.tasks-header p { font-size: 0.84rem; color: rgba(0, 0, 0, 0.7); max-width: 26ch; }
+.new-task-container { margin-top: 12px; border-radius: 20px; padding: 12px 14px 14px; background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(255, 245, 255, 0.96)); border: 1px dashed rgba(204, 171, 216, 0.75); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06); }
+
+.new-task-form-layout {
+  display: flex;
+  flex-direction: column; /* ترتيب عمودي: إيموجي فوق، حقول تحت */
+  gap: 16px;
+}
+/* =========================================
+   تنسيق شريط الإيموجي والمهام - النسخة الفخمة
+   ========================================= */
+
+/* 1. شريط الإيموجيات العلوي */
+/* تنسيق صندوق الإيموجيات المطور */
+.emoji-picker {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  padding: 12px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(204, 171, 216, 0.2) !important;
+  margin-bottom: 20px !important;
+}
+
+/* إزالة أي سواد أو برواز عن الإيموجي */
+.emoji-picker .emoji {
+  width: 40px !important;
+  height: 40px !important;
+  border: none !important;
+  background: white !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  font-size: 1.3rem !important;
+  outline: none !important; /* يمنع ظهور المربع الأسود عند الضغط */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;
+  transition: 0.2s ease !important;
+}
+
+.emoji-picker .emoji.is-active {
+  background: linear-gradient(135deg, var(--mint), var(--purple)) !important;
+  transform: scale(1.1) !important;
+}
+
+/* حقول الإدخال: ترتيب عرضي وألوان ناعمة */
+.task-inputs-row {
+  display: flex !important;
+  gap: 15px !important;
+  margin-bottom: 10px !important;
+}
+
+.task-inputs-row input {
+  width: 100% !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(204, 171, 216, 0.4) !important;
+  padding: 12px 15px !important;
+  outline: none !important; /* طرد السواد عند الكتابة */
+  background: #fff !important;
+  font-family: inherit !important;
+}
+
+.task-inputs-row input:focus {
+  border-color: var(--mint) !important;
+  box-shadow: 0 0 0 3px rgba(134, 227, 206, 0.1) !important;
+}
+
+/* 2. حقول الإدخال */
+/* ترتيب الحقول بجانب بعض */
+.new-task-fields {
+  display: flex !important;
+  gap: 15px !important;
+  width: 100% !important;
+  margin-bottom: 15px !important;
+}
+
+/* تعديل شكل المدخلات وطرد السواد */
+.new-task-fields input {
+  width: 100% !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(204, 171, 216, 0.4) !important; 
+  padding: 12px 16px !important;
+  background: #ffffff !important;
+  font-family: inherit !important;
+  outline: none !important; /* هذا السطر يمنع السواد عند الكتابة */
+  transition: 0.3s ease !important;
+}
+
+.new-task-fields input:focus {
+  border-color: var(--mint) !important;
+  box-shadow: 0 0 0 4px rgba(134, 227, 206, 0.15) !important;
+}
+
+/* 3. زر الحفظ (أنيق وعريض) */
+.save-btn {
+  width: 100% !important;
+  padding: 14px !important;
+  border-radius: 14px !important;
+  border: none !important;
+  background: linear-gradient(135deg, var(--mint), var(--purple)) !important;
+  color: #000 !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  box-shadow: 0 8px 20px rgba(204, 171, 216, 0.3) !important;
+}
+.save-btn:hover {
+  transform: translateY(-2px) !important;
+  filter: brightness(1.05) !important;
+}
+
+/* 4. قائمة المهام المضافة */
+.task-card {
+  border-radius: 20px !important;
+  padding: 12px 16px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04) !important;
+  backdrop-filter: blur(5px) !important;
+  margin-bottom: 12px !important;
+}
+
+.task-card.is-done {
+  background: rgba(134, 227, 206, 0.1) !important;
+  border-color: var(--mint) !important;
+  opacity: 0.8 !important;
+}
+
+/* =========================================================
+   HOME: QUOTES & MESSAGES (Right Side)
+   ========================================================= */
+.quote-card h2, .quick-actions h2 { font-size: 1.02rem; margin-bottom: 6px; }
+.quote-text { margin: 8px 0 4px; font-size: 0.95rem; line-height: 1.9; }
+.quote-author { font-size: 0.8rem; opacity: 0.8; }
+.quote-btn { margin-top: 10px; border-radius: 999px; border: none; padding: 8px 14px; font-size: 0.86rem; cursor: pointer; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(204, 171, 216, 0.6); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); }
+
+.self-message-card { text-align: center; background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 235, 255, 0.8)); border: 1px dashed rgba(204, 171, 216, 0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 18px; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.self-message-card:hover { transform: translateY(-4px); box-shadow: 0 16px 35px rgba(204, 171, 216, 0.2); border-color: var(--mint); }
+.self-message-card p { font-size: 0.9rem; margin-bottom: 16px; color: #555; }
+.home-message-title { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px; }
+.home-message-icon { width: 32px; height: 32px; object-fit: contain; animation: floatMsg 3s ease-in-out infinite; }
+@keyframes floatMsg { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+.quick-actions-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 8px; }
+.home-cta { flex: 1; text-align: center; font-size: 0.9rem; }
+.quick-note { font-size: 0.82rem; color: rgba(0, 0, 0, 0.7); }
+
+/* Message Modal specific */
+.message-textarea { width: 100%; min-height: 130px; padding: 16px; border-radius: 18px; border: 1px solid rgba(204, 171, 216, 0.6); background: rgba(255, 255, 255, 0.7); font-family: inherit; font-size: 0.95rem; line-height: 1.6; resize: vertical; margin: 15px 0; transition: all 0.3s ease; box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.02); }
+.message-textarea:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 4px rgba(204, 171, 216, 0.25); background: #fff; }
+
+/* =========================================================
+   CHATBOT
+   ========================================================= */
+.chatbot-wrapper { position: fixed; bottom: 30px; left: 30px; z-index: 9999; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.chatbot-btn { width: 65px; height: 65px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.65); background: linear-gradient(135deg, var(--mint), var(--purple)); box-shadow: 0 10px 25px rgba(204, 171, 216, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.4); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; justify-content: center; }
+.chatbot-btn:hover { transform: scale(1.1) translateY(-5px); box-shadow: 0 15px 35px rgba(134, 227, 206, 0.6); }
+.chatbot-btn:active { transform: scale(0.95); }
+.chatbot-icon-img { width: 35px; height: 35px; object-fit: contain; }
+.chatbot-tooltip { background: rgba(255, 255, 255, 0.9); padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; color: var(--text-main); box-shadow: 0 5px 15px rgba(0,0,0,0.08); border: 1px solid rgba(204, 171, 216, 0.4); opacity: 0; transform: translateY(10px); transition: 0.4s ease; pointer-events: none; white-space: nowrap; }
+.chatbot-wrapper:hover .chatbot-tooltip { opacity: 1; transform: translateY(0); }
+
+.chat-window { position: fixed; bottom: 100px; left: 30px; width: 520px; height: 450px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(204, 171, 216, 0.5); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; z-index: 9998; opacity: 0; transform: translateY(20px) scale(0.95); pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.chat-window.is-open { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
+.chat-header { background: linear-gradient(135deg, var(--mint), var(--purple)); padding: 15px; display: flex; justify-content: space-between; align-items: center; color: #fff; font-weight: bold; }
+.chat-header-inner { display: flex; align-items: center; gap: 10px; }
+.chat-header-avatar { width: 30px; height: 30px; object-fit: contain; }
+.chat-close-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #fff; padding: 0; opacity: 0.8; transition: opacity 0.2s ease, transform 0.2s ease; }
+.chat-close-btn:hover { opacity: 1; transform: scale(1.05); }
+.chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.message { padding: 10px 14px; border-radius: 12px; font-size: 0.9rem; max-width: 80%; line-height: 1.5; }
+.bot-msg { background: #f0f0f5; color: #333; align-self: flex-start; border-bottom-right-radius: 2px; }
+.user-msg { background: var(--purple); color: #fff; align-self: flex-end; border-bottom-left-radius: 2px; }
+.chat-input-area { padding: 10px; border-top: 1px solid #eee; display: flex; gap: 8px; }
+.chat-input-area input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; font-family: inherit; }
+#sendMsgBtn { background: var(--mint); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; color: #fff; font-weight: bold; }
+
+/* =========================================================
+   JOURNAL PAGE - ANAH (FINAL REFINED VERSION)
+   ========================================================= */
+
+.page-journal { min-height: 100vh; display: flex; flex-direction: column; }
+
+.journal-main { padding-block: 28px 40px; }
+
+/* الحاوية الرئيسية بتأثير زجاجي فخم */
+.journal-container { 
+    width: min(1120px, 100%); 
+    margin-inline: auto; 
+    margin-top: 18px; 
+    margin-bottom: 80px; 
+    border-radius: 28px; 
+    padding: 22px 22px 26px; 
+    background: rgba(255, 255, 255, 0.85); 
+    border: 1px solid rgba(255, 255, 255, 0.8); 
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.1), 0 0 90px rgba(204, 171, 216, 0.2); 
+    backdrop-filter: blur(20px) saturate(170%); 
+    position: relative; 
+    overflow: hidden; 
+}
+
+.journal-header-top { display: flex; justify-content: space-between; gap: 20px; align-items: flex-end; margin-bottom: 20px; }
+.journal-header-top h1 { font-size: 1.6rem; margin-bottom: 6px; font-weight: 900; }
+.journal-lead { font-size: 0.9rem; max-width: 45ch; opacity: 0.8; }
+
+.journal-meta-chip { 
+    align-self: flex-start; 
+    padding: 6px 14px; 
+    border-radius: 999px; 
+    background: rgba(255, 255, 255, 0.95); 
+    border: 1px solid rgba(204, 171, 216, 0.4); 
+    font-size: 0.85rem; 
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.journal-split-layout { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr); gap: 24px; align-items: flex-start; }
+
+/* البطاقات بتدرج ناعم وخط ملون علوي */
+.journal-card { 
+    border-radius: 24px; 
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(253, 248, 255, 0.95)); 
+    border: 1px solid rgba(204, 171, 216, 0.3); 
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04); 
+    padding: 20px; 
+    position: relative; 
+    overflow: hidden; 
+}
+
+.journal-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--mint), var(--purple), var(--peach));
+    opacity: 0.6;
+}
+
+.journal-card h2 { font-size: 1.05rem; margin-bottom: 12px; font-weight: 800; color: #333; }
+.journal-sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+/* ---------------------------------------------------------
+   إصلاح قسم الإنجازات (خطوط مرتبة وتنسيق RTL)
+   --------------------------------------------------------- */
+.achievements-list { display: grid; gap: 10px; margin-top: 8px; }
+
+.achv-card { 
+    display: flex !important;
+    flex-direction: row-reverse !important; /* الأيقونة يمين والكلام يسار */
+    justify-content: flex-end !important;
+    align-items: center !important; 
+    gap: 12px !important;
+    padding: 12px 16px !important; 
+    border-radius: 18px !important; 
+    background: rgba(255, 255, 255, 0.5) !important; 
+    border: 1px solid rgba(204, 171, 216, 0.15) !important; 
+    transition: all 0.3s ease !important; 
+    opacity: 0.5 !important; 
+    filter: grayscale(1) !important;
+    position: relative !important;
+}
+
+.achv-card.is-unlocked { 
+    opacity: 1 !important; 
+    filter: grayscale(0) !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(134, 227, 206, 0.1)) !important; 
+    border-color: rgba(134, 227, 206, 0.5) !important; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.03) !important;
+}
+
+.achv-icon { font-size: 1.5rem !important; }
+
+.achv-text {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    flex: 1 !important;
+    margin-right: 5px !important;
+}
+
+.achv-text strong {
+    font-size: 0.88rem !important; /* تصغير حجم الخط */
+    color: #1a1d2e !important;
+    margin-bottom: 2px !important;
+    font-weight: 800 !important;
+}
+
+.achv-text small {
+    font-size: 0.78rem !important; /* تصغير الوصف */
+    color: #777 !important;
+    line-height: 1.4 !important;
+}
+
+.achv-badge {
+    position: absolute !important;
+    left: 12px !important; /* التسمية أقصى اليسار */
+    font-size: 0.7rem !important;
+    padding: 3px 10px !important;
+    border-radius: 999px !important;
+    font-weight: 800 !important;
+    background: #eee !important;
+    color: #999 !important;
+}
+
+.achv-card.is-unlocked .achv-badge {
+    background: linear-gradient(120deg, var(--mint), var(--purple)) !important;
+    color: #000 !important;
+}
+
+/* ---------------------------------------------------------
+   تجميل شريط الأدوات وإخفاء المربع الأسود
+   --------------------------------------------------------- */
+.editor-toolbar { 
+    display: flex; 
+    flex-wrap: wrap; 
+    align-items: center; 
+    gap: 10px; 
+    padding: 10px 16px; 
+    background: rgba(255, 255, 255, 0.5); 
+    border: 1px solid rgba(204, 171, 216, 0.2); 
+    border-radius: 16px; 
+    margin-bottom: 15px; 
+}
+
+.editor-toolbar button, 
+.editor-toolbar .toolbar-btn, 
+.editor-toolbar .emoji-wrapper button { 
+    background: transparent; 
+    border: none; 
+    width: 38px; 
+    height: 38px; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    cursor: pointer; 
+    color: #5b4766; 
+    font-size: 1.1rem; 
+    transition: all 0.2s ease; 
+    border-radius: 10px;
+}
+
+.editor-toolbar button:hover { 
+    background: rgba(204, 171, 216, 0.15); 
+    color: var(--purple); 
+}
+
+/* إخفاء المربع الأسود في منقي الألوان */
+.color-picker-wrapper {
+    position: relative !important;
+    width: 38px !important;
+    height: 38px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    border-radius: 10px !important;
+    color: #5b4766 !important;
+}
+
+.color-picker-wrapper:hover { background: rgba(204, 171, 216, 0.15); }
+
+.color-picker-wrapper input[type="color"] {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 0 !important; /* إخفاء المربع الأسود */
+    cursor: pointer !important;
+}
+
+/* ---------------------------------------------------------
+   أزرار ملونة وحيوية (عرض المذكرات والإنجازات)
+   --------------------------------------------------------- */
+.journal-link-btn {
+    width: 100% !important;
+    padding: 12px !important;
+    margin-top: 5px !important;
+    border-radius: 999px !important;
+    border: none !important;
+    background: linear-gradient(120deg, var(--mint), var(--purple)) !important;
+    color: #000 !important;
+    font-weight: 800 !important;
+    font-size: 0.9rem !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    box-shadow: 0 8px 20px rgba(204, 171, 216, 0.3) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.journal-link-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 12px 25px rgba(204, 171, 216, 0.4) !important;
+}
+
+.note-area { 
+    width: 100%; 
+    min-height: 200px; 
+    border-radius: 20px; 
+    border: 1px solid rgba(204, 171, 216, 0.4); 
+    padding: 16px; 
+    font-family: inherit; 
+    font-size: 0.95rem; 
+    background: #fff; 
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);
+    line-height: 1.7;
+}
+
+.note-area:focus { outline: none; border-color: var(--mint); box-shadow: 0 0 0 3px rgba(134, 227, 206, 0.15); }
+
+/* =========================================
+   إصلاح المودال (النوافذ المنبثقة) لتكون فوق الصفحة بالمنتصف
+   ========================================= */
+
+/* الخلفية الشفافة اللي تغطي الصفحة وقت ظهور التنبيه */
+.journal-modal {
+  position: fixed !important;
+  inset: 0 !important; /* يعني top, right, bottom, left كلهم 0 */
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.4) !important; /* تغميق خفيف للصفحة ورا التنبيه */
+  backdrop-filter: blur(8px) !important; /* تأثير غباش */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 99999 !important; /* السطر الأهم: يضمن إنه يكون فوق كللللل شيء بالصفحة */
+}
+
+/* حالة الإخفاء */
+.journal-modal[hidden] {
+  display: none !important;
+}
+
+/* المربع الأبيض حق التنبيه نفسه */
+.journal-modal-dialog {
+  width: min(500px, 90%) !important;
+  max-height: 85vh !important;
+  background: #ffffff !important;
+  border-radius: 24px !important;
+  padding: 30px !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25) !important;
+  position: relative !important;
+  overflow-y: auto !important; /* لو المحتوى طويل يطلع سكرول جوا المربع بس */
+  animation: popIn 0.3s ease-out !important; /* تأثير ظهور حلو */
+}
+
+/* تأثير الخط الملون فوق التنبيه */
+.journal-modal-dialog::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 5px !important;
+  background: linear-gradient(90deg, var(--mint), var(--purple), var(--peach)) !important;
+}
+
+/* زر إغلاق التنبيه (X) اللي فوق يسار */
+.journal-modal-close {
+  position: absolute !important;
+  top: 15px !important;
+  left: 15px !important; /* في العربي يصير يسار */
+  background: none !important;
+  border: none !important;
+  font-size: 1.5rem !important;
+  color: #666 !important;
+  cursor: pointer !important;
+  transition: 0.2s ease !important;
+}
+
+.journal-modal-close:hover {
+  color: #ff4b5c !important; /* يصير أحمر خفيف لما تمرين عليه */
+  transform: scale(1.1) !important;
+}
+
+/* أنيميشن الظهور */
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+/* =========================================
+   تعديل حجم أزرار (حفظ المذكرة / مسح النص)
+   ========================================= */
+.editor-actions-left {
+  display: flex !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+.editor-actions-left button {
+  padding: 8px 18px !important; /* تصغير المساحة الداخلية للزر */
+  font-size: 0.85rem !important; /* تصغير الخط ليكون أنيق */
+  border-radius: 999px !important;
+  height: auto !important;
+}
+
+/* زر الحفظ الملون */
+#save {
+  background: linear-gradient(120deg, var(--mint), var(--purple)) !important;
+  box-shadow: 0 4px 12px rgba(204, 171, 216, 0.4) !important;
+}
+
+/* زر المسح الشفاف */
+#clearToday {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(204, 171, 216, 0.5) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* =========================================
+   ترتيب المسافة بين الأزرار السفلية
+   ========================================= */
+.editor-actions {
+  margin-top: 15px !important; /* مسافة بسيطة بين المذكرة والأزرار */
+  padding-bottom: 5px !important;
+}
+/* =========================================================
+   ANALYZE PAGE - الترتيب النهائي بدون تسلسل زمني
+   ========================================================= */
+.page-analyze { min-height: 100vh; display: flex; flex-direction: column; }
+.analyze-main { padding-block: 26px 40px; }
+
+/* الحاوية الأساسية */
+.analyze-container { 
+    width: min(1120px, 100%); 
+    margin-inline: auto; 
+    margin-top: 18px; 
+    border-radius: 28px; 
+    padding: 30px; 
+    background: rgba(255, 255, 255, 0.85); 
+    border: 1px solid rgba(255, 255, 255, 0.8); 
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.1), 0 0 90px rgba(204, 171, 216, 0.2); 
+    backdrop-filter: blur(20px) saturate(170%); 
+}
+
+.analyze-header-top { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-end; 
+    margin-bottom: 20px; 
+    padding-bottom: 15px;
+    border-bottom: 1px dashed rgba(204, 171, 216, 0.4);
+}
+
+.analyze-title { font-size: 1.8rem; margin-bottom: 6px; font-weight: 900; color: #1a1d2e;}
+.an-meta-chip { padding: 6px 14px; border-radius: 999px; background: #fff; border: 1px solid var(--mint); font-size: 0.85rem; font-weight: 700; color: #333;}
+
+/* التقسيم: 1fr يمين (مشاعر/توصيات) ، 1.8fr يسار (للرسم البياني العريض) */
+.an-grid { 
+    display: grid !important; 
+    grid-template-columns: 340px 1fr !important; /* ثبتنا اليمين، وخلينا اليسار يتمدد */
+    gap: 26px !important; 
+    align-items: flex-start !important; 
+}
+
+.an-right-col { display: flex; flex-direction: column; gap: 20px; grid-column: 1; }
+.an-left-col { display: flex; flex-direction: column; gap: 20px; grid-column: 2; }
+
+/* ستايل البطاقات */
+.an-card { 
+    border-radius: 24px; 
+    padding: 24px; 
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(253, 248, 255, 0.95)) !important;
+    border: 1px solid rgba(204, 171, 216, 0.3) !important; 
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04) !important; 
+    position: relative;
+    overflow: hidden;
+}
+
+.an-card::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--mint), var(--purple), var(--peach));
+    opacity: 0.6;
+}
+
+.an-card h2 { font-size: 1.15rem; font-weight: 800; margin-bottom: 8px; color: #222;}
+.an-subtext { font-size: 0.9rem; color: #666; margin-bottom: 15px; line-height: 1.6;}
+
+/* تكبير الرسم البياني شوي */
+.an-chart-wrap canvas { width: 100% !important; max-height: 350px !important; }
+
+/* تنسيق التوصيات */
+.rec-quote { 
+    padding: 18px; 
+    border-radius: 16px; 
+    background: linear-gradient(135deg, rgba(204,171,216,0.15), rgba(134,227,206,0.05)); 
+    border: 1px solid rgba(200,170,220,0.4); 
+    font-size: 0.95rem; 
+    font-weight: 700; 
+    line-height: 1.8; 
+    color: #3b2d45; 
+    margin-bottom: 20px;
+}
+
+.rec-section h4 { margin: 0 0 10px 0; font-size: 0.95rem; font-weight: 800; color: #5b4766; }
+.rec-section ul { margin: 0 0 15px 0; padding-right: 20px; line-height: 1.9; font-size: 0.9rem; color: #5f5f5f; }
+/* =========================================
+   تنسيق أزرار الفلترة الزمنية (Chips)
+   ========================================= */
+.an-chip-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+/* الشكل الأساسي للأزرار (غير مفعلة) */
+.an-chip {
+    padding: 8px 18px !important;
+    border-radius: 999px !important;
+    font-size: 0.9rem !important;
+    font-family: inherit !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    background: rgba(255, 255, 255, 0.9) !important; /* خلفية بيضاء */
+    border: 1px solid rgba(204, 171, 216, 0.6) !important; /* إطار بنفسجي خفيف */
+    color: #4a3a57 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* شكل الزر عند التمرير بالماوس */
+.an-chip:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 15px rgba(204, 171, 216, 0.3) !important;
+}
+
+/* شكل الزر المفعل (Active) - اللي عليه اللون */
+.an-chip.is-active {
+    background: linear-gradient(120deg, var(--mint), var(--purple)) !important; /* التدرج اللوني */
+    color: #000 !important; /* لون الخط أسود */
+    border: none !important; /* بدون إطار */
+    box-shadow: 0 8px 20px rgba(204, 171, 216, 0.5) !important; /* ظل أقوى */
+    transform: scale(1.05) !important; /* تكبير بسيط */
+}
+/* تجاوب الجوال */
+@media (max-width: 900px) {
+    .an-grid { grid-template-columns: 1fr !important; }
+    .an-left-col { grid-column: 1 !important; order: -1; } /* يخلي الرسم البياني فوق في الجوال */
+    .an-right-col { grid-column: 1 !important; }
+}
+/* =========================================================
+   TEAM PAGE
+   ========================================================= */
+.team-hero { text-align: center; max-width: 850px; margin: 0 auto 60px; padding-top: 40px; }
+.team-title { font-size: 2.7rem; font-weight: 800; color: #1c1c1c; margin-bottom: 25px; line-height: 1.35; position: relative; display: inline-block; }
+.team-grid { margin-top: 50px; display: flex; flex-wrap: wrap; justify-content: center; gap: 32px clamp(24px, 3vw, 40px); padding-block: 10px; }
+.team-card { background: rgba(255, 255, 255, 0.45); padding: 35px 28px; border-radius: 30px; text-align: center; -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); box-shadow: 0 10px 35px rgba(0, 0, 0, 0.06); border: 1px solid rgba(255, 255, 255, 0.6); transition: transform 0.25s ease, box-shadow 0.25s ease; cursor: default; }
+.team-avatar { width: 80px; height: 80px; margin: 0 auto 18px; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.6rem; color: #fff; background: linear-gradient(135deg, #ffbcbc, #ffd4a8, #c8ffe0, #b4d5ff, #e4c4ff); background-size: 200% 200%; animation: avatarWave 5s ease infinite; }
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+.site-footer { margin-top: auto; padding-block: 16px 18px; border-top: 1px solid rgba(255, 255, 255, 0.7); background: linear-gradient(to top, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.4), transparent); font-size: 0.84rem; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.footer-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.footer-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.footer-copy { font-weight: 600; color: var(--text-main); }
+.footer-links { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.footer-links a { color: var(--text-main); text-decoration: none; opacity: 0.78; transition: opacity 0.18s ease; }
+
+/* =========================================================
+   KEYFRAMES & UTILS
+   ========================================================= */
+@keyframes bg-pan { 0% { background-position: 0% 0%, 100% 100%; } 50% { background-position: 40% 0%, 60% 100%; } 100% { background-position: 100% 0%, 0% 100%; } }
+@keyframes blob-float { 0% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(3vmax, -3vmax, 0) scale(1.1); } 100% { transform: translate3d(-2vmax, 2vmax, 0) scale(1.04); } }
+.fade-up { opacity: 0; transform: translateY(20px); animation: fadeUp 0.8s ease forwards; }
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+/* =========================================================
+   RESPONSIVE DESIGN - التعديل الصحيح
+   ========================================================= */
+
+/* غيرنا المقاس من 900 إلى 768 عشان يضبط على اللابتوب وما يقلب عمود واحد إلا في الجوال */
+@media (max-width: 768px) {
+  .home-grid { 
+    grid-template-columns: 1fr !important; /* هنا فقط يقلب عمود واحد للجوال */
+  }
+  .home-right, .home-left {
+    grid-column: auto !important;
+  }
+  .nav { padding-block: 8px; gap: 10px; }
+  .nav-links { overflow-x: auto; white-space: nowrap; padding-bottom: 4px; }
+  .journal-container { width: 92%; padding: 16px; margin-top: 8px; }
+  .journal-header-top { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 600px) {
+  .home-container { padding: 18px 14px 22px; border-radius: 22px; }
+  .progress-body { flex-direction: column; }
+  .task-inputs-row { flex-direction: column; }
+  .chat-window { width: 90vw; height: 70vh; left: 5vw; }
+  .mood-buttons .mood { width: 80px; height: 80px; }
+}

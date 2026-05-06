@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>أناه | الصفحة الرئيسية</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="modal.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+  </head>
+
+  <body class="page-home has-animated-bg">
+
+    <div class="bg-blobs">
+      <div class="blob mint"></div>
+      <div class="blob peach"></div>
+      <div class="blob purple"></div>
+    </div>
+
+    <header class="site-header">
+      <div class="shell">
+        <nav class="nav">
+          <a href="home.html" class="brand">
+            <img src="images/anah.jpeg" alt="anah logo" class="brand-icon" />
+            <span>أناه</span>
+          </a>
+          <ul class="nav-links">
+            <li><a href="home.html" class="active anim-underline">الرئيسية</a></li>
+            <li><a href="journal.html" class="anim-underline">اليوميات</a></li>
+            <li><a href="analyze.html" class="anim-underline">تحليل المزاج</a></li>
+          </ul>
+          <a id="authButton" href="SignOrLogin.html" class="pill-button pill-ghost">تسجيل / دخول</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="home-main shell">
+      <div class="home-container">
+
+        <header class="home-header-top">
+          <div>
+            <p class="eyebrow fade-up">لوحة يومك</p>
+            <h1 class="home-heading fade-up">
+              <span id="greeting">مرحبًا</span>، هذه مساحتك لليوم.
+            </h1>
+            <p class="home-lead fade-up">راقب شعورك، نظّم مهامك الصغيرة، وخذ نظرة سريعة على تقدمك خلال اليوم.</p>
+          </div>
+          <div class="home-header-meta">
+            <div class="home-meta-date" id="homeToday"></div>
+            <div class="home-meta-stats">
+              <div class="meta-pill"><span>عدد المهام</span> <strong id="tasksTotalCount">0</strong></div>
+              <div class="meta-pill"><span>المكتملة</span> <strong id="tasksDoneCount">0</strong></div>
+            </div>
+          </div>
+        </header>
+
+        <!-- 1. شريط المزاج فوق لحاله بكامل العرض وبدون نصوص -->
+     <!-- 1. شريط المزاج فوق لحاله بكامل العرض وبنفس ستايل الكارد القديم -->
+        <section class="home-card mood-card-top slide-right" aria-label="اختر حالتك المزاجية">
+          <h2 style="text-align: center; font-size: 1.4rem; margin-bottom: 8px;">كيف تشعر الآن؟</h2>
+          <p style="text-align: center; margin-bottom: 24px; font-size: 0.95rem; opacity: 0.8;">اضغط على الأيقونة الأقرب لشعورك في هذه اللحظة.</p>
+          
+          <div class="mood-buttons mood-buttons-centered" aria-label="اختر حالتك المزاجية">
+            <button class="mood veryhappy" data-mood="سعيد" type="button"><img src="images/Habby.png" alt="سعيدة جدًا" /></button>
+            <button class="mood angry" data-mood="غاضب" type="button"><img src="images/Angry.png" alt="غاضبة" /></button>
+            <button class="mood worried" data-mood="قلق" type="button"><img src="images/worried.png" alt="قلقة" /></button>
+            <button class="mood tired" data-mood="متعب" type="button"><img src="images/Tired.png" alt="متعبة" /></button>
+            <button class="mood ok" data-mood="لا بأس" type="button"><img src="images/Ok.png" alt="لا بأس" /></button>
+            <button class="mood sad" data-mood="حزين" type="button"><img src="images/Sad.png" alt="حزينة" /></button>
+          </div>
+        </section>
+        <!-- 2. صندوق التوزيع الأساسي (يمين ويسار) -->
+        <section class="home-grid-perfect slide-right">
+          
+          <!-- الصندوق الأول (اليمين): السايدبار النحيف -->
+          <section class="home-right">
+            
+            <section class="home-card quote-card" aria-label="اقتباس اليوم">
+              <h2>اقتباس اليوم</h2>
+              <blockquote id="quoteText" class="quote-text">"أحيانًا يكفي أن تتنفس بعمق لتبدأ من جديد."</blockquote>
+              <p class="quote-author">— فريق أناه</p>
+              <button id="newQuoteBtn" type="button" class="quote-btn">اقتباس آخر</button>
+            </section>
+
+            <div class="home-card self-message-card">
+              <h2 class="home-message-title">
+                <img src="images/MessageIcon.png" class="home-message-icon" alt="icon">
+                رسالة لنفسك
+              </h2>
+              <p>اكتب رسالة لنفسك في المستقبل</p>
+              <button id="openMessageModal" class="pill-button pill-primary">اكتب رسالة</button>
+            </div>
+
+            <section class="home-card quick-actions" aria-label="روابط سريعة">
+              <h2>روابط سريعة</h2>
+              <div class="quick-actions-grid">
+                <a href="journal.html" class="home-cta primary-cta">افتح صفحة اليوميات</a>
+                <a href="analyze.html" class="home-cta ghost-cta">شاهد تحليل مشاعرك</a>
+              </div>
+            </section>
+          </section>
+          <!-- نهاية الصندوق النحيف لليمين -->
+
+          <!-- الصندوق الثاني (اليسار): المهام العريضة -->
+          <section class="home-left">
+            
+            <section class="home-card progress-card" aria-label="تقدم مهام اليوم">
+              <div class="progress-header">
+                <h2>تقدم مهامك اليوم</h2>
+                <p class="progress-sub">أنجز القليل اليوم، وتراكمه يصنع فرقًا كبيرًا على المدى البعيد.</p>
+              </div>
+              <div class="progress-body">
+                <div class="progress-ring-container">
+                  <svg class="progress-ring" width="140" height="140">
+                    <defs>
+                      <linearGradient id="gradientRing" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="var(--mint)" />
+                        <stop offset="50%" stop-color="var(--purple)" />
+                        <stop offset="100%" stop-color="var(--peach)" />
+                      </linearGradient>
+                    </defs>
+                    <circle class="progress-ring-bg" cx="70" cy="70" r="58"></circle>
+                    <circle class="progress-ring-fill" cx="70" cy="70" r="58"></circle>
+                  </svg>
+                  <div class="progress-center">
+                    <span id="progressText" class="progress-percent">0%</span>
+                    <span class="progress-label">من تحدّي اليوم</span>
+                  </div>
+                </div>
+                <div class="progress-side">
+                  <p class="progress-note">حدد ٣–٥ مهام صغيرة فقط، لا تحتاج أن يكون اليوم مزدحمًا حتى يكون مفيدًا.</p>
+                  <button id="startChallengeBtn" type="button" class="pill-button pill-primary small primary-cta">ابدأ تحدّي المهام</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="home-card tasks-card" aria-label="قائمة المهام الصغيرة">
+              <header class="tasks-header">
+                <h2>قائمة مهام اليوم</h2>
+                <p>اختر إيموجي يمثّل شعور المهمة وحدّد وقتًا بسيطًا لإنجازها.</p>
+              </header>
+              <div id="newTaskContainer" class="new-task-container">
+                <form id="newTaskForm" class="new-task-form" novalidate>
+                  <div class="emoji-picker" id="emojiSelector">
+                    <button type="button" class="emoji is-active">☀️</button>
+                    <button type="button" class="emoji">💻</button>
+                    <button type="button" class="emoji">📚</button>
+                    <button type="button" class="emoji">🧘🏻‍♀️</button>
+                    <button type="button" class="emoji">🏃‍♂️</button>
+                    <button type="button" class="emoji">💧</button>
+                    <button type="button" class="emoji">🎨</button>
+                    <button type="button" class="emoji">🧹</button>
+                    <button type="button" class="emoji">🛒</button>
+                    <button type="button" class="emoji">🌿</button>
+                    <button type="button" class="emoji">☕</button>
+                    <button type="button" class="emoji">🌙</button>
+                  </div>
+                  <div class="new-task-fields">
+                    <div class="field task-desc-field">
+                      <span class="field-label">المهمة</span>
+                      <input id="taskDescription" type="text" placeholder="مثال: شرب ماء، 10 دقائق مشي..." autocomplete="off" />
+                    </div>
+                    <div class="field task-time-field">
+                      <span class="field-label">المدة (دقائق)</span>
+                      <input id="taskTime" type="number" min="1" max="600" placeholder="15" autocomplete="off" />
+                    </div>
+                  </div>
+                  <div class="form-actions">
+                    <button id="saveTaskBtn" type="button" class="save-btn">حفظ المهمة</button>
+                  </div>
+                </form>
+              </div>
+              <div id="taskList" class="task-list" role="list"></div>
+            </section>
+          </section>
+          <!-- نهاية الصندوق العريض لليسار -->
+
+        </section>
+        <!-- نهاية صندوق التوزيع (Grid) -->
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell footer-row">
+        <div class="footer-left">
+          <a href="home.html" class="brand">
+            <img src="images/anah.jpeg" alt="anah logo" class="brand-icon" />
+            <span>أناه</span>
+          </a>
+          <span class="footer-copy"> © <span id="year">2026</span> أناه </span>
+          <span class="footer-tagline"> مساحة صغيرة تهتم بمشاعرك بلطف. </span>
+        </div>
+        <nav class="footer-links">
+          <a href="#about">عن أناه</a>
+          <span class="footer-dot">·</span>
+          <a href="team.html">فريق أناه</a>
+        </nav>
+      </div>
+    </footer>
+
+    <!-- Modals -->
+    <div id="emptyTaskModal" class="journal-modal" hidden>
+      <div class="journal-modal-dialog dialog-centered">
+        <h3 class="modal-title">لحظة من فضلك!</h3>
+        <p class="modal-body">المهام تحتاج إلى عنوان لتكتمل.</p>
+        <button id="closeEmptyTaskModal" class="pill-button pill-primary full-width">حسناً</button>
+      </div>
+    </div>
+
+    <div id="timeAlertModal" class="journal-modal" hidden>
+      <div class="journal-modal-dialog dialog-centered">
+        <h3 class="modal-title">كم دقيقة؟</h3>
+        <p class="modal-body">يجب تحديد وقت تقريبي للمهمة.</p>
+        <button id="closeTimeAlertModal" class="pill-button pill-primary full-width">حسناً</button>
+      </div>
+    </div>
+
+    <div class="chatbot-wrapper">
+      <button class="chatbot-btn" id="chatbotBtn"><img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Chatbot" class="chatbot-icon-img" /></button>
+    </div>
+
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-header">
+        <div class="chat-header-inner">
+          <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Bot" class="chat-header-avatar" />
+          <span>مساعد أناه الذكي</span>
+        </div>
+        <button id="closeChat" class="chat-close-btn">×</button>
+      </div>
+      <div class="chat-messages" id="chatMessages"><div class="message bot-msg">مرحباً بك 🤍.. كيف يمكنني مساعدتك اليوم؟</div></div>
+      <div class="chat-input-area">
+        <input type="text" id="userMsgInput" placeholder="اكتب شعورك هنا..." />
+        <button id="sendMsgBtn">➤</button>
+      </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="utils.js"></script>
+    <script src="home.js"></script>
+    <script src="chicklist.js"></script>
+
+    <div id="emojiChoiceModal" class="journal-modal" hidden>
+      <div class="journal-modal-dialog dialog-centered" style="max-width: 480px;">
+        <div id="emojiChoiceModalIcon" style="font-size: 3rem; margin-bottom: 10px;">⚖️</div>
+        <h3 class="modal-title">تعارض في البيانات</h3>
+        <p id="emojiChoiceModalMessage" style="margin-bottom: 25px; color: #555; line-height: 1.6;">
+          لديك يومية مكتوبة لهذا اليوم. اختيار إيموجي سيؤدي لحذف اليومية والاعتماد على الإيموجي في التحليل. هل أنتِ متأكدة؟
+        </p>
+        <div style="display: flex; gap: 10px; width: 100%;">
+          <button id="confirmEmojiChoiceBtn" class="pill-button pill-primary" style="flex: 1;">اعتماد الإيموجي</button>
+          <button id="cancelEmojiChoiceBtn" class="pill-button pill-ghost" style="flex: 1;">الاحتفاظ باليومية</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="messageModal" class="journal-modal" hidden>
+      <div class="journal-modal-dialog">
+        <h3 class="modal-title">
+          <img src="images/MessageIcon.png" class="modal-icon" alt="icon"> رسالة لنفسك
+        </h3>
+        <textarea id="futureMessageInput" placeholder="اكتب شيء تحب تتذكرة لاحقًا..." style="width:100%; height:100px; margin:10px 0;"></textarea>
+        <select id="messageDelay" class="custom-select">
+          <option value="1">بعد يوم</option>
+          <option value="3">بعد 3 أيام</option>
+          <option value="7">بعد أسبوع</option>
+        </select>
+        <div style="margin-top:15px;">
+          <button id="saveMessageBtn" class="pill-button pill-primary">حفظ الرسالة</button>
+          <button id="closeMessageModal" class="pill-button pill-danger">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="futureMessageModal" class="journal-modal" hidden>
+      <div class="journal-modal-dialog dialog-centered">
+        <h3 class="modal-title">
+          <img src="images/MessageIcon.png" class="modal-icon" alt="icon"> رسالة من نفسك
+        </h3>
+        <p id="futureMessageText" class="modal-body"></p>
+        <button id="closeFutureMessageModal" class="pill-button pill-primary full-width">جميل</button>
+      </div>
+    </div>
+
+    <div id="successModal" class="journal-modal" hidden>
+      <div class="journal-modal-dialog dialog-centered">
+        <h3 class="modal-title">
+          <img src="images/MessageIcon.png" class="modal-icon" alt="icon"> تم حفظ رسالتك
+        </h3>
+        <p class="modal-body">راح توصلك في الوقت اللي اخترتيه</p>
+        <button id="closeSuccessModal" class="pill-button pill-primary full-width">حسناً</button>
+      </div>
+    </div>
+  </body>
+</html>
