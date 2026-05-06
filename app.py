@@ -1,61 +1,40 @@
 import re
 import os
-import torch  # أضفنا تورش للتحكم في الذاكرة
+import requests  # ضرورية لإرسال الطلبات لـ Hugging Face
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from transformers import pipeline, AutoModelForSequenceClassification, AutoTokenizer
 from openai import OpenAI
 
-# تقليل استهلاك الذاكرة عبر تعطيل التدرجات (Gradients) ومنع العمليات الحسابية الزائدة
-torch.set_grad_enabled(False)
-
-# Configure server to serve static files (CSS, JS, Images)
+# إعداد السيرفر لخدمة ملفات الموقع
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
 
-# Initialize OpenAI client
+# إعداد عميل OpenAI للشات بوت
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 # ------------------------------------------------
-# ⚙️ Dual Model System (Primary + Backup)
+# ⚙️ Cloud AI System (Hugging Face Inference)
 # ------------------------------------------------
-pipe = None
-PRIMARY_MODEL = "raghadddddddd/anahEmotions"
+# الرابط الخاص بموديلك الذي قمتِ برفعه على Hugging Face
+HF_API_URL = "https://api-inference.huggingface.co/models/gala97/anah-emotions-marbert"
+# التوكن الذي استخرجتيه من إعدادات Hugging Face (يُفضل وضعه في Environment Variables باسم HF_TOKEN)
+HF_TOKEN = os.environ.get("HF_TOKEN")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-BACKUP_MODEL_PATH = os.path.join(BASE_DIR, "ai model", "UBC-NLP_MARBERTv2", "checkpoint-1821")
+print("⏳ Starting Anah Cloud Engine...")
 
-print("⏳ Starting Anah engine...")
-
-try:
-    # تعديل Plan A لتقليل استهلاك الرام عند التحميل عبر lazy loading
-    pipe = pipeline(
-        "text-classification", 
-        model=PRIMARY_MODEL, 
-        truncation=True,
-        model_kwargs={
-            "low_cpu_mem_usage": True,  # سطر جوهري لتقليل الذاكرة
-            "torch_dtype": torch.float16 if torch.cuda.is_available() else torch.float32 # اختيار الدقة الأنسب للموارد
-        }
-    )
-    print(f"✅ (Plan A): Fast model loaded successfully from {PRIMARY_MODEL}")
-except Exception as e1:
-    print(f"⚠️ Failed to connect to the fast model, switching to Plan B... Reason: {e1}")
+def query_hf_model(text_list):
+    """دالة لإرسال النص لموديل MARBERT على Hugging Face واستقبال النتائج"""
+    if not HF_TOKEN:
+        print("❌ Error: HF_TOKEN not found in environment variables")
+        return None
+        
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     try:
-        # تعديل Plan B لتقليل استهلاك الرام عند تحميل الموديل الثقيل محلياً
-        pipe = pipeline(
-            "text-classification", 
-            model=BACKUP_MODEL_PATH, 
-            tokenizer=BACKUP_MODEL_PATH, 
-            truncation=True,
-            model_kwargs={"low_cpu_mem_usage": True}
-        )
-        print("✅✅ (Plan B): Heavy backup model loaded successfully!")
-    except Exception as e2:
-        print(f"❌ Critical Error: Failed to load both models. Check local model path. Reason: {e2}")
-
-if pipe:
-    print(f"📍 المسار الفعلي للموديل: {pipe.model.config._name_or_path}")
+        response = requests.post(HF_API_URL, headers=headers, json={"inputs": text_list}, timeout=10)
+        return response.json()
+    except Exception as e:
+        print(f"❌ Connection Error to Hugging Face: {e}")
+        return None
 
 # ------------------------------------------------
 # 🧠 Chatbot Memory & Prompt
@@ -64,20 +43,11 @@ last_emotion_memory = {}
 
 SYSTEM_PROMPT = """
 أنت أناه، مساعد دعم عاطفي عربي ذكي ومتزن.
-
 التعليمات:
 - استخدم لغة عربية فصحى بسيطة وطبيعية.
-- لا تجعل كل الردود بنفس الطول:
-  - إذا كانت الرسالة بسيطة → رد قصير.
-  - إذا كانت عميقة → رد أطول قليلًا.
-- لا تلتزم بعدد أسطر محدد.
-- لا تنهِ كل رد بسؤال:
-  - أحيانًا اختم بسؤال إذا كان مفيد.
-  - وأحيانًا أنهِ بجملة داعمة فقط.
 - ابدأ دائمًا بتفهم شعور المستخدم.
-- قدم اقتراح بسيط عند الحاجة (ليس دائمًا).
+- قدم اقتراح بسيط عند الحاجة.
 - تجنب التكرار والردود النمطية.
-- لا تقدم نصائح طبية أو تشخيص.
 """
 
 # ------------------------------------------------
@@ -97,9 +67,6 @@ def index():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    if pipe is None:
-        return jsonify({"error": "الموديل غير متاح حالياً، يرجى التحقق من التيرمنال"}), 500
-
     data = request.get_json(silent=True) or {}
     text = (data.get("text") or "").strip()
 
@@ -111,21 +78,26 @@ def predict():
         sentences = [text]
 
     try:
-        # استخدام torch.no_grad لضمان عدم استهلاك الذاكرة أثناء التوقع
-        with torch.no_grad():
-            results = pipe(sentences)
+        # إرسال الجمل للتحليل عبر السحابة بدلاً من التحميل المحلي الثقيل
+        results = query_hf_model(sentences)
         
-        all_moods = []
-        sentence_details = []
+        if results is None or "error" in str(results):
+            return jsonify({"error": "الموديل السحابي جاري التحميل، يرجى المحاولة بعد لحظات"}), 503
         
+        # إذا أعاد API قائمة من القوائم (تنسيق الاستنتاج المتعدد)
+        if isinstance(results, list) and len(results) > 0 and isinstance(results[0], list):
+            processed_results = results[0]
+        else:
+            processed_results = results
+
         mood_counts = {}
         mood_scores = {}
+        sentence_details = []
 
-        for i, res in enumerate(results):
+        for i, res in enumerate(processed_results):
             mood = res.get("label", "غير محدد")
             score = float(res.get("score", 0.0))
             
-            all_moods.append(mood)
             mood_counts[mood] = mood_counts.get(mood, 0) + 1
             mood_scores[mood] = mood_scores.get(mood, 0.0) + score
             
@@ -144,13 +116,6 @@ def predict():
         primary_mood = sorted_moods[0] if sorted_moods else "غير محدد"
         secondary_mood = sorted_moods[1] if len(sorted_moods) > 1 else None
 
-        print("\n" + "="*50)
-        print(f"📊 Emotion Frequency (Count) : {mood_counts}")
-        print(f"🎯 Confidence Scores (Sum)   : {mood_scores}")
-        print(f"🥇 Primary Emotion Selected  : {primary_mood}")
-        print(f"🥈 Secondary Emotion Selected: {secondary_mood}")
-        print("="*50 + "\n")
-
         return jsonify({
             "finalMood": primary_mood,
             "secondaryMood": secondary_mood,
@@ -160,36 +125,35 @@ def predict():
 
     except Exception as e:
         print(f"❌ Error during prediction: {e}")
-        return jsonify({"error": "حدث خطأ أثناء تحليل النص"}), 500
+        return jsonify({"error": "حدث خطأ أثناء تحليل النص سحابياً"}), 500
 
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json(silent=True) or {}
-    user_message = data.get("message") or data.get("text") or ""
-    user_message = user_message.strip()
+    user_message = (data.get("message") or data.get("text") or "").strip()
 
     if len(user_message) < 3:
         return jsonify({"reply": "اكتب جملة أوضح قليلاً لأتمكن من مساعدتك."})
 
     try:
+        # تحليل شعور رسالة الشات بوت سحابياً
         emotion = "غير محدد"
-        if pipe:
-            with torch.no_grad():
-                emotion_result = pipe(user_message)[0]
-            emotion = emotion_result.get("label", "غير محدد")
+        hf_res = query_hf_model([user_message])
+        if hf_res and isinstance(hf_res, list):
+            # استخراج التسمية من أول نتيجة
+            emotion = hf_res[0][0].get("label", "غير محدد") if isinstance(hf_res[0], list) else hf_res[0].get("label", "غير محدد")
 
         previous_emotion = last_emotion_memory.get("last")
         last_emotion_memory["last"] = emotion
 
+        prompt = f"المستخدم يشعر بـ {emotion}. رسالة المستخدم: {user_message}"
         if previous_emotion and previous_emotion != emotion:
-            prompt = f"المستخدم كان يشعر بـ {previous_emotion}.\nالآن يشعر بـ {emotion}.\nرسالة المستخدم: {user_message}"
-        else:
-            prompt = f"المستخدم يشعر بـ {emotion}.\nرسالة المستخدم: {user_message}"
+            prompt = f"المستخدم كان يشعر بـ {previous_emotion} والآن يشعر بـ {emotion}. رسالته: {user_message}"
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             max_tokens=80,
-            timeout=5,
+            timeout=10,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt}
@@ -201,10 +165,8 @@ def chat():
 
     except Exception as e:
         print(f"❌ Error in OpenAI chat: {e}")
-        return jsonify({"reply": "خذ لحظة هدوء قصيرة، والتنفس ببطء قد يساعد."})
+        return jsonify({"reply": "أنا هنا لأسمعك، خذ نفساً عميقاً وأخبرني بما يدور في بالك."})
 
 if __name__ == "__main__":
-    # الحصول على المنفذ من متغيرات البيئة لـ Render
     port = int(os.environ.get("PORT", 8000))
-    # التشغيل على 0.0.0.0 ضروري للنشر السحابي
     app.run(host="0.0.0.0", port=port, debug=False)
