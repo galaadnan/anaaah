@@ -43,8 +43,9 @@ try:
     onnx_session = ort.InferenceSession(MODEL_PATH)
     
     # --- التعديل هنا فقط ---
-    # الترتيب الجديد المقترح لإصلاح تصنيف "غضب"
-LABELS = ["هادئ", "سعيد", "حزين", "غاضب", "متوتر", "تعبان"]    # -----------------------
+    # الترتيب الجديد المطابق 100% لملف config.json
+    LABELS = ["هادئ", "سعيد", "حزين", "غاضب", "متوتر", "تعبان"]
+    # -----------------------
     
     print("✅ Local Model Loaded Successfully!")
 except Exception as e:
