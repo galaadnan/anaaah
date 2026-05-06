@@ -7,7 +7,9 @@ from openai import OpenAI
 
 # إعداد السيرفر لخدمة ملفات الموقع
 app = Flask(__name__, static_folder='.', static_url_path='')
-CORS(app)
+
+# تحديث: تفعيل CORS بشكل كامل للسماح للجوال بالاتصال بالسيرفر السحابي
+CORS(app, resources={r"/*": {"origins": "*"}}) 
 
 # إعداد عميل OpenAI للشات بوت
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
@@ -15,9 +17,9 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 # ------------------------------------------------
 # ⚙️ Cloud AI System (Hugging Face Inference)
 # ------------------------------------------------
-# الرابط الخاص بموديلك الذي قمتِ برفعه على Hugging Face
+# الرابط الخاص بموديلك على Hugging Face
 HF_API_URL = "https://api-inference.huggingface.co/models/gala97/anah-emotions-marbert"
-# التوكن الذي استخرجتيه من إعدادات Hugging Face (يُفضل وضعه في Environment Variables باسم HF_TOKEN)
+# قراءة التوكن من إعدادات Render لضمان الأمان
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
 print("⏳ Starting Anah Cloud Engine...")
@@ -78,13 +80,11 @@ def predict():
         sentences = [text]
 
     try:
-        # إرسال الجمل للتحليل عبر السحابة بدلاً من التحميل المحلي الثقيل
         results = query_hf_model(sentences)
         
         if results is None or "error" in str(results):
             return jsonify({"error": "الموديل السحابي جاري التحميل، يرجى المحاولة بعد لحظات"}), 503
         
-        # إذا أعاد API قائمة من القوائم (تنسيق الاستنتاج المتعدد)
         if isinstance(results, list) and len(results) > 0 and isinstance(results[0], list):
             processed_results = results[0]
         else:
@@ -136,12 +136,13 @@ def chat():
         return jsonify({"reply": "اكتب جملة أوضح قليلاً لأتمكن من مساعدتك."})
 
     try:
-        # تحليل شعور رسالة الشات بوت سحابياً
         emotion = "غير محدد"
         hf_res = query_hf_model([user_message])
         if hf_res and isinstance(hf_res, list):
-            # استخراج التسمية من أول نتيجة
-            emotion = hf_res[0][0].get("label", "غير محدد") if isinstance(hf_res[0], list) else hf_res[0].get("label", "غير محدد")
+            if isinstance(hf_res[0], list):
+                emotion = hf_res[0][0].get("label", "غير محدد")
+            else:
+                emotion = hf_res.get("label", "غير محدد") if isinstance(hf_res, dict) else hf_res[0].get("label", "غير محدد")
 
         previous_emotion = last_emotion_memory.get("last")
         last_emotion_memory["last"] = emotion
@@ -169,4 +170,5 @@ def chat():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
+    # التشغيل على 0.0.0.0 لاستقبال الطلبات الخارجية في Render
     app.run(host="0.0.0.0", port=port, debug=False)
