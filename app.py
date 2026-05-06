@@ -182,7 +182,8 @@ def chat():
     except Exception as e:
         print(f"❌ Error in OpenAI chat: {e}")
         return jsonify({"reply": "أنا هنا لأسمعك، خذ نفساً عميقاً وأخبرني بما يدور في بالك."})
-
 if __name__ == "__main__":
+    # هذا السطر سيعمل فقط إذا شغلتِ الملف بـ python app.py
+    # أما في Render (عبر Gunicorn) فسيتم تجاهله
     port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=port, debug=True)
