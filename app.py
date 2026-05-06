@@ -20,8 +20,8 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 # ------------------------------------------------
 # ⚙️ Cloud Storage & AI Engine (Google Drive + ONNX)
 # ------------------------------------------------
-# المعرف الخاص بملفك من رابط جوجل درايف الذي زودتني به
-FILE_ID = "1FBS7ZkBoSABvmeKDpNL92o1VWsSTaYpY"
+# المعرف الخاص بملفك الجديد من رابط جوجل درايف
+FILE_ID = "1nCbz-QB-pymtmDauZfWzBgCbTKTnHbtl" 
 # تحديد المسار المطلق لضمان عمل الموديل في بيئة Linux الخاصة بـ Render
 current_dir = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(current_dir, "model.onnx")
@@ -56,11 +56,26 @@ except Exception as e:
     print(f"❌ Critical Error loading ONNX model: {e}")
 
 def query_local_model(text_list):
-    """دالة لتحليل النصوص محلياً باستخدام ONNX"""
+    """دالة لتحليل النصوص محلياً باستخدام ONNX مع معالجة ذكية للجمل الإيجابية"""
     results = []
     try:
         for text in text_list:
-            inputs = tokenizer(text, return_tensors="np", padding=True, truncation=True)
+            text_clean = text.strip()
+            
+            # --------------------------------------------------------
+            # 💡 التعديل الهندسي المخصص: معالجة "لا بأس" والكلمات الإيجابية العنيدة
+            # --------------------------------------------------------
+            # قائمة الكلمات التي تعبر عن حالة "لا بأس / هادئ"
+            calm_keywords = ["لا باس", "لا بأس", "انا كويسه", "انا كويسة", "الحمدلله", "الحمد لله", "بخير"]
+            if any(word in text_clean for word in calm_keywords):
+                results.append({
+                    "label": "هادئ", # سيتم إرسالها كـ "هادئ" لتظهر في الموقع "لا بأس"
+                    "score": 0.99
+                })
+                continue 
+            # --------------------------------------------------------
+            
+            inputs = tokenizer(text_clean, return_tensors="np", padding=True, truncation=True)
             ort_inputs = {k: v for k, v in inputs.items()}
             
             # تشغيل الموديل
