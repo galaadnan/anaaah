@@ -173,5 +173,7 @@ def chat():
         return jsonify({"reply": "خذ لحظة هدوء قصيرة، والتنفس ببطء قد يساعد."})
 
 if __name__ == "__main__":
+    # Render يمرر رقم المنفذ تلقائياً عبر متغيرات البيئة، وإلا نستخدم 8000 افتراضياً
     port = int(os.environ.get("PORT", 8000))
-    app.run(host="127.0.0.1", port=port, debug=False)
+    # تغيير الـ host إلى 0.0.0.0 ضروري جداً للنشر
+    app.run(host="0.0.0.0", port=port, debug=False)
