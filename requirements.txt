@@ -1,5 +1,7 @@
 flask
 flask-cors
-gunicorn
+onnxruntime
+transformers
+numpy
 openai
-requests
+gunicorn
