@@ -1,9 +1,13 @@
 import re
+import os
+import torch  # أضفنا تورش للتحكم في الذاكرة
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from transformers import pipeline
-import os
+from transformers import pipeline, AutoModelForSequenceClassification, AutoTokenizer
 from openai import OpenAI
+
+# تقليل استهلاك الذاكرة عبر تعطيل التدرجات (Gradients)
+torch.set_grad_enabled(False)
 
 # Configure server to serve static files (CSS, JS, Images)
 app = Flask(__name__, static_folder='.', static_url_path='')
@@ -24,29 +28,53 @@ BACKUP_MODEL_PATH = os.path.join(BASE_DIR, "ai model", "UBC-NLP_MARBERTv2", "che
 print("⏳ Starting Anah engine...")
 
 try:
-    pipe = pipeline("text-classification", model=PRIMARY_MODEL, truncation=True)
+    # تعديل Plan A لتقليل استهلاك الرام عند التحميل
+    pipe = pipeline(
+        "text-classification", 
+        model=PRIMARY_MODEL, 
+        truncation=True,
+        model_kwargs={"low_cpu_mem_usage": True} # سطر جوهري لتقليل الذاكرة
+    )
     print(f"✅ (Plan A): Fast model loaded successfully from {PRIMARY_MODEL}")
 except Exception as e1:
     print(f"⚠️ Failed to connect to the fast model, switching to Plan B... Reason: {e1}")
     try:
-        pipe = pipeline("text-classification", model=BACKUP_MODEL_PATH, tokenizer=BACKUP_MODEL_PATH, truncation=True)
+        # تعديل Plan B لتقليل استهلاك الرام
+        pipe = pipeline(
+            "text-classification", 
+            model=BACKUP_MODEL_PATH, 
+            tokenizer=BACKUP_MODEL_PATH, 
+            truncation=True,
+            model_kwargs={"low_cpu_mem_usage": True}
+        )
         print("✅✅ (Plan B): Heavy backup model loaded successfully!")
     except Exception as e2:
         print(f"❌ Critical Error: Failed to load both models. Check local model path. Reason: {e2}")
-# أضيفي هذا السطر تحت سطر الـ pipe = pipeline(...)
-print(f"📍 المسار الفعلي للموديل: {pipe.model.config._name_or_path}")
+
+if pipe:
+    print(f"📍 المسار الفعلي للموديل: {pipe.model.config._name_or_path}")
+
 # ------------------------------------------------
 # 🧠 Chatbot Memory & Prompt
 # ------------------------------------------------
 last_emotion_memory = {}
 
 SYSTEM_PROMPT = """
-أنت أناه، مساعد دعم عاطفي عربي متزن.
-استخدم لغة فصحى محايدة.
-اجعل الرد سطرين كحد أقصى.
-ابدأ بتفهم موجز، ثم اقترح خطوة عملية بسيطة.
-أحياناً اختم بسؤال قصير يعزز الوعي الذاتي.
-تجنب المبالغة أو النصائح الطبية.
+أنت أناه، مساعد دعم عاطفي عربي ذكي ومتزن.
+
+التعليمات:
+- استخدم لغة عربية فصحى بسيطة وطبيعية.
+- لا تجعل كل الردود بنفس الطول:
+  - إذا كانت الرسالة بسيطة → رد قصير.
+  - إذا كانت عميقة → رد أطول قليلًا.
+- لا تلتزم بعدد أسطر محدد.
+- لا تنهِ كل رد بسؤال:
+  - أحيانًا اختم بسؤال إذا كان مفيد.
+  - وأحيانًا أنهِ بجملة داعمة فقط.
+- ابدأ دائمًا بتفهم شعور المستخدم.
+- قدم اقتراح بسيط عند الحاجة (ليس دائمًا).
+- تجنب التكرار والردود النمطية.
+- لا تقدم نصائح طبية أو تشخيص.
 """
 
 # ------------------------------------------------
@@ -85,7 +113,6 @@ def predict():
         all_moods = []
         sentence_details = []
         
-        # Dictionaries to track frequency and total confidence scores
         mood_counts = {}
         mood_scores = {}
 
@@ -103,7 +130,6 @@ def predict():
                 "score": score
             })
 
-        # Sort moods: First by frequency count, then by total confidence score to break ties
         sorted_moods = sorted(
             mood_counts.keys(), 
             key=lambda k: (mood_counts[k], mood_scores[k]), 
@@ -113,7 +139,6 @@ def predict():
         primary_mood = sorted_moods[0] if sorted_moods else "غير محدد"
         secondary_mood = sorted_moods[1] if len(sorted_moods) > 1 else None
 
-        # --- Debugging Print Statements ---
         print("\n" + "="*50)
         print(f"📊 Emotion Frequency (Count) : {mood_counts}")
         print(f"🎯 Confidence Scores (Sum)   : {mood_scores}")
@@ -173,7 +198,6 @@ def chat():
         return jsonify({"reply": "خذ لحظة هدوء قصيرة، والتنفس ببطء قد يساعد."})
 
 if __name__ == "__main__":
-    # Render يمرر رقم المنفذ تلقائياً عبر متغيرات البيئة، وإلا نستخدم 8000 افتراضياً
     port = int(os.environ.get("PORT", 8000))
-    # تغيير الـ host إلى 0.0.0.0 ضروري جداً للنشر
+    # التشغيل على 0.0.0.0 لاستقبال الطلبات الخارجية في Render
     app.run(host="0.0.0.0", port=port, debug=False)
