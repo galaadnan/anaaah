@@ -91,7 +91,7 @@ function initDailyPrompt() {
  */
 async function runLocalAnalysis(text) {
   try {
-    // التعديل الجوهري: تم إزالة رابط Ngrok واستخدام المسار المحلي للسيرفر لتجاوز مشكلة CORS
+    // 💡 التعديل: استخدام المسار النسبي لضمان عمل السيرفر بعد تفعيله على Render
     const response = await fetch("/predict", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -102,10 +102,14 @@ async function runLocalAnalysis(text) {
     
     const data = await response.json();
     return {
-      finalMood: data.finalMood || "غير محدد",
-      secondaryMood: data.secondaryMood || null,
+      // 💡 التعديل: ضمان تحويل "هادئ" إلى "لا بأس" في الواجهة لراحة المستخدم
+      finalMood: data.finalMood === "هادئ" ? "لا بأس" : (data.finalMood || "غير محدد"),
+      secondaryMood: data.secondaryMood === "هادئ" ? "لا بأس" : (data.secondaryMood || null),
       moodCounts: data.moodCounts || {},
-      sentencesDetails: data.sentencesDetails || []
+      sentencesDetails: (data.sentencesDetails || []).map(s => ({
+          ...s,
+          mood: s.mood === "هادئ" ? "لا بأس" : s.mood
+      }))
     };
   } catch (error) {
     console.error("AI Server Error:", error);
@@ -145,7 +149,7 @@ async function saveTodayEntry() {
       words: wordCount(textContent),
       finalMood: analysis.finalMood,
       secondaryMood: analysis.secondaryMood,
-      moodCounts: analysis.moodCounts,         
+      moodCounts: analysis.moodCounts,          
       sentencesDetails: analysis.sentencesDetails, 
       savedAt: firebase.firestore.FieldValue.serverTimestamp(),
     }, { merge: true });
@@ -155,7 +159,7 @@ async function saveTodayEntry() {
     showJournalStatus(msg, "success");
     
     noteEl.innerHTML = ""; 
-    if(typeof initAchievementsUI === "function") initAchievementsUI(); // تحديث الإنجازات بعد الحفظ
+    if(typeof initAchievementsUI === "function") initAchievementsUI(); 
 
   } catch (err) {
     console.error("Firestore Save Error:", err);
@@ -287,7 +291,6 @@ async function initAchievementsUI() {
 
     const totalWords = jSnap.docs.reduce((sum, d) => sum + (Number(d.data()?.words) || 0), 0);
     
-    // إنجاز جديد بدل الـ 5 نجوم: يفتح إذا كتب المستخدم يومية بمشاعر مختلطة
     const hasMixedEmotions = jSnap.docs.some(d => d.data()?.secondaryMood != null);
 
     const achvs = [
@@ -326,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
   firebase.auth().onAuthStateChanged((user) => {
     if (user) {
-      setTimeout(() => initAchievementsUI(), 1000); // تأخير بسيط لضمان تحميل البيانات
+      setTimeout(() => initAchievementsUI(), 1000); 
     }
   });
 
