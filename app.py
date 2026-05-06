@@ -1,5 +1,6 @@
 import re
 import os
+import json
 import numpy as np
 import gdown
 from flask import Flask, request, jsonify, send_from_directory
@@ -8,21 +9,18 @@ from openai import OpenAI
 import onnxruntime as ort
 from transformers import AutoTokenizer
 
-# إعداد السيرفر لخدمة ملفات الموقع
 app = Flask(__name__, static_folder='.', static_url_path='')
-
-# تفعيل CORS بشكل كامل لضمان عمل الجوال واللابتوب مع Render
 CORS(app, resources={r"/*": {"origins": "*"}}) 
 
-# إعداد عميل OpenAI للشات بوت
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 # ------------------------------------------------
-# ⚙️ Cloud Storage & AI Engine (Google Drive + ONNX)
+# ⚙️ Cloud Storage & AI Engine
 # ------------------------------------------------
 FILE_ID = "1FBS7ZkBoSABvmeKDpNL92o1VWsSTaYpY"
 current_dir = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(current_dir, "model.onnx")
+CONFIG_PATH = os.path.join(current_dir, "config.json")
 
 def download_model_from_drive():
     if not os.path.exists(MODEL_PATH):
@@ -36,29 +34,45 @@ def download_model_from_drive():
 
 download_model_from_drive()
 
-print("⏳ Loading Anah ONNX Engine locally...")
+# 💡 استخراج الترتيب الصحيح مباشرة من ملف الإعدادات
+try:
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        config_data = json.load(f)
+        id2label = config_data.get("id2label", {})
+        # ترتيب القائمة بناءً على المفاتيح (0, 1, 2...)
+        LABELS = [id2label[str(i)] for i in range(len(id2label))]
+    print(f"✅ Dynamic Labels Loaded: {LABELS}")
+except Exception as e:
+    LABELS = ["هادئ", "سعيد", "حزين", "غاضب", "متوتر", "تعبان"]
+    print(f"⚠️ Warning: Could not read config.json, using fallback. Error: {e}")
 
 try:
     tokenizer = AutoTokenizer.from_pretrained(current_dir)
     onnx_session = ort.InferenceSession(MODEL_PATH)
-    
-    # تأكدي إن فيه 4 مسافات قبل كلمة LABELS عشان تكون داخل الـ try
-    LABELS = ["هادئ", "سعيد", "حزين", "غاضب", "متوتر", "تعبان"]
-    
-    print("✅ Local Model Loaded Successfully!")
+    print("✅ Local Model & Tokenizer Loaded Successfully!")
 except Exception as e:
-    print(f"❌ Critical Error loading ONNX model: {e}")
+    print(f"❌ Critical Error: {e}")
 
 def query_local_model(text_list):
     results = []
     try:
         for text in text_list:
-            inputs = tokenizer(text, return_tensors="np", padding=True, truncation=True)
-            ort_inputs = {k: v for k, v in inputs.items()}
+            # 💡 تحسين: إضافة padding و truncation لضمان استقرار الموديل
+            inputs = tokenizer(text, return_tensors="np", padding='max_length', max_length=128, truncation=True)
+            
+            # 💡 تحويل النوع لـ int64 لضمان التوافق مع ONNX
+            ort_inputs = {k: v.astype(np.int64) for k, v in inputs.items()}
+            
             ort_outs = onnx_session.run(None, ort_inputs)
             scores = ort_outs[0][0]
+            
+            # تطبيق Softmax
             exp_scores = np.exp(scores - np.max(scores))
             probs = exp_scores / exp_scores.sum()
+            
+            # طباعة الاحتمالات للتشخيص في Render Logs
+            print(f"🔍 Text: '{text}' | Probs: {list(zip(LABELS, probs.round(3)))}")
+            
             best_class_idx = np.argmax(probs)
             results.append({
                 "label": LABELS[best_class_idx],
@@ -69,20 +83,9 @@ def query_local_model(text_list):
         print(f"❌ Analysis Error: {e}")
         return None
 
-last_emotion_memory = {}
-
-SYSTEM_PROMPT = """
-أنت أناه، مساعد دعم عاطفي عربي ذكي ومتزن.
-التعليمات:
-- استخدم لغة عربية فصحى بسيطة وطبيعية.
-- ابدأ دائمًا بتفهم شعور المستخدم.
-- قدم اقتراح بسيط عند الحاجة.
-- تجنب التكرار والردود النمطية.
-"""
-
-def split_arabic_sentences(text: str):
-    sentences = re.split(r'[.؟!،\n]+', text)
-    return [s.strip() for s in sentences if len(s.strip()) > 3]
+# ------------------------------------------------
+# 🌐 Website Routes
+# ------------------------------------------------
 
 @app.route("/")
 def index():
@@ -92,75 +95,50 @@ def index():
 def predict():
     data = request.get_json(silent=True) or {}
     text = (data.get("text") or "").strip()
-    if not text:
-        return jsonify({"error": "No text provided"}), 400
-    sentences = split_arabic_sentences(text)
-    if not sentences:
-        sentences = [text]
+    if not text: return jsonify({"error": "No text"}), 400
+
+    # تقسيم الجمل لضمان تحليل أدق
+    sentences = [s.strip() for s in re.split(r'[.؟!،\n]+', text) if len(s.strip()) > 3] or [text]
+    
     try:
         results = query_local_model(sentences)
-        if results is None:
-            return jsonify({"error": "فشل المحرك المحلي في تحليل النص"}), 500
+        if not results: return jsonify({"error": "Analysis failed"}), 500
+        
         mood_counts = {}
         mood_scores = {}
-        sentence_details = []
-        for i, res in enumerate(results):
-            if i >= len(sentences): break
-            mood = res.get("label", "غير محدد")
-            score = res.get("score", 0.0)
-            mood_counts[mood] = mood_counts.get(mood, 0) + 1
-            mood_scores[mood] = mood_scores.get(mood, 0.0) + score
-            sentence_details.append({
-                "sentence": sentences[i],
-                "mood": mood,
-                "score": score
-            })
-        sorted_moods = sorted(
-            mood_counts.keys(), 
-            key=lambda k: (mood_counts[k], mood_scores[k]), 
-            reverse=True
-        )
-        primary_mood = sorted_moods[0] if sorted_moods else "غير محدد"
-        secondary_mood = sorted_moods[1] if len(sorted_moods) > 1 else None
+        for r in results:
+            m = r['label']
+            mood_counts[m] = mood_counts.get(m, 0) + 1
+            mood_scores[m] = mood_scores.get(m, 0.0) + r['score']
+            
+        sorted_moods = sorted(mood_counts.keys(), key=lambda k: (mood_counts[k], mood_scores[k]), reverse=True)
+        
         return jsonify({
-            "finalMood": primary_mood,
-            "secondaryMood": secondary_mood,
+            "finalMood": sorted_moods[0],
             "moodCounts": mood_counts,
-            "sentencesDetails": sentence_details
+            "sentencesDetails": [{"sentence": sentences[i], "mood": results[i]['label'], "score": results[i]['score']} for i in range(len(results))]
         })
     except Exception as e:
-        print(f"❌ Error during prediction: {e}")
-        return jsonify({"error": f"حدث خطأ أثناء تحليل النص: {str(e)}"}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json(silent=True) or {}
-    user_message = (data.get("message") or data.get("text") or "").strip()
-    if len(user_message) < 3:
-        return jsonify({"reply": "اكتب جملة أوضح قليلاً لأتمكن من مساعدتك."})
-    try:
-        hf_res = query_local_model([user_message])
-        emotion = hf_res[0].get("label", "غير محدد") if hf_res else "غير محدد"
-        previous_emotion = last_emotion_memory.get("last")
-        last_emotion_memory["last"] = emotion
-        prompt = f"المستخدم يشعر بـ {emotion}. رسالة المستخدم: {user_message}"
-        if previous_emotion and previous_emotion != emotion:
-            prompt = f"المستخدم كان يشعر بـ {previous_emotion} والآن يشعر بـ {emotion}. رسالته: {user_message}"
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            max_tokens=80,
-            timeout=10,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        bot_reply = response.choices[0].message.content.strip()
-        return jsonify({"reply": bot_reply})
-    except Exception as e:
-        print(f"❌ Error in OpenAI chat: {e}")
-        return jsonify({"reply": "أنا هنا لأسمعك، خذ نفساً عميقاً وأخبرني بما يدور في بالك."})
+    user_message = (data.get("message") or "").strip()
+    if not user_message: return jsonify({"reply": "تكلم معي، أنا أسمعك."})
+    
+    hf_res = query_local_model([user_message])
+    emotion = hf_res[0].get("label", "غير محدد") if hf_res else "غير محدد"
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "أنت أناه، مساعد دعم عاطفي عربي ذكي."},
+            {"role": "user", "content": f"المستخدم يشعر بـ {emotion}. رسالة المستخدم: {user_message}"}
+        ]
+    )
+    return jsonify({"reply": response.choices[0].message.content})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port)
